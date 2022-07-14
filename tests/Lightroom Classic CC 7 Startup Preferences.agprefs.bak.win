@@ -1,0 +1,11 @@
+prefs = {
+	libraryToLoad20 = "C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat",
+	recentLibraries20 = "recentLibraries = {\
+	\"C:\\\\Users\\\\harsh\\\\Pictures\\\\Lightroom\\\\Lightroom Catalog.lrcat\",\
+}\
+",
+	recentLibraries20_missing = "recentMissingLibraries = {\
+}\
+",
+	recentLibraryBehavior20 = "UseMostRecentLibrary",
+}

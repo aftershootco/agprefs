@@ -1,0 +1,44 @@
+prefs = {
+	Adobe_successfulUpgrades1100000 = "pickle = {\
+	[\"/Users/nikhil/Downloads/Alexavier and Ashley.lrcat\"] = {\
+		catalogType = \"lr\",\
+		id = \"70933BD8-9D87-4D87-8541-6A2BFE2979A7\",\
+		upgraded = \"/Users/nikhil/Downloads/Alexavier and Ashley-v11.lrcat\",\
+	},\
+}\
+",
+	libraryToLoad20 = "/Users/nikhil/Downloads/Catalogs/C2/C5/C5.lrcat",
+	recentLibraries20 = "recentLibraries = {\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C5/C5.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C6/C6.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C4/C4.lrcat\",\
+	\"/Users/nikhil/Downloads/smart/sample1/sample1.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/Cnew/Cnew.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C2/C2.lrcat\",\
+	\"/Users/nikhil/Pictures/Lightroom/Lightroom Catalog.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C3/C3.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C1/C1.lrcat\",\
+	\"/Users/nikhil/Downloads/editing/test/test/test.lrcat\",\
+	\"/Users/nikhil/Downloads/Alexavier and Ashley-v11.lrcat\",\
+}\
+",
+	recentLibraries20_missing = "recentMissingLibraries = {\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Dataset/8/Tyler and Olivia-v11.lrcat\",\
+	\"/Volumes/T5/Downloads/Jag/Alie + Shane 3/20210724_Davidson_Page_AS_WED-v11.lrcat\",\
+	\"/Volumes/T5/Downloads/Jag/Adrienne + Dean 2/20201120_Stiefel_O_Malley_AD_WED-v10-v11.lrcat\",\
+	\"/Volumes/T5/Downloads/Jessie and Chris/Jessie and Chris.lrcat\",\
+	\"/Volumes/T5/Downloads/Diana&Jason/Diana&JasonWedLR copy-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Dataset/1/Brad and LIz.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Estaban/Dataset/2/BrittanyBoote.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Evan/1/Eun-Young&AlexLR.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Comparision/Justins Edits/Nikhil Editing.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Dataset/2/Chris and Corrianne-v11.lrcat\",\
+	\"/Volumes/T5/Downloads/AfterShoot Editing Tests.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Estaban/Dataset/1/jessiechris.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Estaban/Dataset/3/Aftrshoot1.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C6/C6.lrcat\",\
+}\
+",
+	recentLibraryBehavior20 = "UseMostRecentLibrary",
+}
