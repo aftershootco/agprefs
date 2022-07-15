@@ -4,12 +4,12 @@ use nom::{
     bytes::complete::*,
     character::complete::*,
     combinator::*,
-    // complete::*,
     error::{Error, ErrorKind},
     multi::*,
     sequence::*,
     IResult,
 };
+
 pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
     let (s, name) = take_until1("=")(s)?;
     let mut prefs = Agpref::with_name(name);
@@ -19,9 +19,8 @@ pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
     prefs.values = v.into_iter().map(|i| (i.name, i.value)).collect();
 
     if !s.is_empty() {
-        // return nom::Err(Error(ErrorKind::Custom("Unexpected character".to_string())));
         return Err(nom::Err::Failure(nom::error::Error::new(
-            "Couln't parse the whole file",
+            "Unable parse the whole file",
             ErrorKind::Complete,
         )));
     }
@@ -105,7 +104,10 @@ fn get_bool(s: &str) -> IResult<&str, Item> {
     match text.to_ascii_lowercase().as_str() {
         "true" => Ok((s, (key, true).into())),
         "false" => Ok((s, (key, false).into())),
-        _ => Err(nom::Err::Error(Error::new("", ErrorKind::Tag))),
+        _ => Err(nom::Err::Error(Error::new(
+            "Unable to read boolean",
+            ErrorKind::Tag,
+        ))),
     }
 }
 
