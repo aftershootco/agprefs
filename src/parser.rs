@@ -16,7 +16,7 @@ pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
     let (s, _) = tag("=")(s)?;
 
     let (s, v) = item_list(s)?;
-    prefs.values = v.into_iter().map(|i| (i.name.clone(), i)).collect();
+    prefs.values = v.into_iter().map(|i| (i.name, i.value)).collect();
 
     if !s.is_empty() {
         // return nom::Err(Error(ErrorKind::Custom("Unexpected character".to_string())));

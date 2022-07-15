@@ -108,7 +108,7 @@ where
 #[derive(Debug, Default, Clone)]
 pub struct Agpref {
     pub name: String,
-    pub values: HashMap<String, Item>,
+    pub values: HashMap<String, Value>,
 }
 
 impl Agpref {
@@ -124,7 +124,7 @@ impl Agpref {
 }
 
 impl std::ops::Deref for Agpref {
-    type Target = HashMap<String, Item>;
+    type Target = HashMap<String, Value>;
     fn deref(&self) -> &Self::Target {
         &self.values
     }
