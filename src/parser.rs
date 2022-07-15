@@ -9,9 +9,10 @@ use nom::{
     sequence::*,
     IResult,
 };
-
-pub fn agprefs(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
-    Ok(_agprefs(s.as_ref())?)
+impl Agpref {
+    pub fn from_str(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
+        Ok(_agprefs(s.as_ref())?)
+    }
 }
 fn _agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
     let (s, name) = get_key(s)?;

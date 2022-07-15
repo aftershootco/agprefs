@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum Value {
     Int(i64),
     Float(f64),
@@ -101,7 +101,7 @@ where
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Agpref {
     pub name: String,
     pub values: HashMap<String, Value>,
@@ -132,7 +132,7 @@ impl std::ops::DerefMut for Agpref {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NamedList {
     pub name: String,
     pub values: Vec<Value>,
