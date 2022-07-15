@@ -10,11 +10,13 @@ use nom::{
     IResult,
 };
 
-pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
-    let (s, name) = take_until1("=")(s)?;
+pub fn agprefs(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
+    Ok(_agprefs(s.as_ref())?)
+}
+fn _agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
+    let (s, name) = get_key(s)?;
     let mut prefs = Agpref::with_name(name);
-    let (s, _) = tag("=")(s)?;
-
+    let (s, _) = equals(s)?;
     let (s, v) = item_list(s)?;
     prefs.values = v.into_iter().map(|i| (i.name, i.value)).collect();
 

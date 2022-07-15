@@ -7,13 +7,13 @@ pub enum Errors {
     #[error("{0}")]
     Utf8(#[from] std::str::Utf8Error),
     #[error("Failed to parse")]
-    Nom,
+    Nom(String),
     #[error("{0}")]
     Other(String),
 }
 
-impl From<nom::Err<nom::error::Error<&'static str>>> for Errors {
-    fn from(_: nom::Err<nom::error::Error<&'static str>>) -> Self {
-        Errors::Nom
+impl From<nom::Err<nom::error::Error<&str>>> for Errors {
+    fn from(e: nom::Err<nom::error::Error<&str>>) -> Self {
+        Errors::Nom(e.to_string())
     }
 }
