@@ -1,0 +1,48 @@
+prefs = {
+	Adobe_successfulUpgrades1100000 = "pickle = {\
+	[\"/Users/nikhil/Downloads/Alexavier and Ashley.lrcat\"] = {\
+		catalogType = \"lr\",\
+		id = \"70933BD8-9D87-4D87-8541-6A2BFE2979A7\",\
+		upgraded = \"/Users/nikhil/Downloads/Alexavier and Ashley-v11.lrcat\",\
+	},\
+}\
+",
+	libraryToLoad20 = "/Volumes/T5/AfterShoot Editing/Profiles/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat",
+	recentLibraries20 = "recentLibraries = {\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/issue2/issue2.lrcat\",\
+	\"/Volumes/T5/Downloads/Nikhil Editing.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset/4/Kevin and Brydie-v11.lrcat\",\
+	\"/Users/nikhil/Pictures/Lightroom/Lightroom Catalog.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/issue/issue.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/version/version.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/boom/Liza&SanjayStyledLR-v11.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/yush/yush.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/yushman/yushman.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C5/C5.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C6/C6.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C2/C2.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/e1/Neha & Garrett LR-v10-v11.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/C2/C4/C4.lrcat\",\
+}\
+",
+	recentLibraries20_missing = "recentMissingLibraries = {\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset/1/Brad and LIz.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset/6/AaronKristenNikhil.lrcat\",\
+	\"/Users/nikhil/Downloads/Catalogs/issue2/issue2.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Evan/Dataset/4/Neha & Garrett LR-v10-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Evan/Dataset/1/Diana&JasonWedLR-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Estaban Profile 1/Dataset/5/2.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/9/20200926_Mays_Tsentas_LC_WED-v10-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/8/20191008_Kelly_Lenze_KS_WED-2-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/7/20190811_Wiggins_Ramadei_JJ_WED-2-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/6/20190520_McKenna_EC_MAT-2-2-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/5/20210731_Steig_Almaral_CD_WED-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/4/20210828_Barstein_Bengston_BJ_WED-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Exact Datasets/Jag Studios/Dataset/3/20210325_Hines_Lunt_AE_WED-v11.lrcat\",\
+}\
+",
+	recentLibraryBehavior20 = "UseMostRecentLibrary",
+}
