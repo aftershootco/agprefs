@@ -51,9 +51,6 @@ fn get_escaped_string(s: &str) -> IResult<&str, Item> {
     if let Ok((_, t)) = named_list(&text) {
         return Ok((s, (key, t).into()));
     }
-    // else if let Ok((_, t)) = get_item(s) {
-    //     return Ok((s, (key, t).into()));
-    // }
 
     Ok((s, (key, text).into()))
 }
@@ -168,8 +165,6 @@ fn named_list(s: &str) -> IResult<&str, NamedList> {
     let (s, _) = equals(s)?;
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
-    // let (s, v) = separated_list1(comma, esc)(s)?;
-    // dbg!(&v);
     let (s, _) = opt(comma)(s)?;
     let (s, _) = close(s)?;
     Ok((
