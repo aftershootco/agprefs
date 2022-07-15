@@ -16,7 +16,7 @@ pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
     let (s, _) = tag("=")(s)?;
 
     let (s, v) = item_list(s)?;
-    prefs.values = v;
+    prefs.values = v.into_iter().map(|i| (i.name.clone(), i)).collect();
 
     if !s.is_empty() {
         // return nom::Err(Error(ErrorKind::Custom("Unexpected character".to_string())));
@@ -31,9 +31,9 @@ pub fn agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
 
 fn get_item<'a>(s: &str) -> IResult<&str, Item> {
     alt((
-        get_float,
+        get_num,
         alt((
-            get_num,
+            get_float,
             alt((
                 get_bool,
                 alt((get_unit, alt((get_vec, get_escaped_string)))),
@@ -47,23 +47,39 @@ fn get_escaped_string(s: &str) -> IResult<&str, Item> {
     let (s, _) = equals(s)?;
     let (s, _) = tag("\"")(s)?;
     let (s, text) = esc(s)?;
-    if let Ok(t) = named_list(&text) {
-        return Ok((s, t.into()));
-    }
     let (s, _) = tag("\"")(s)?;
+    if let Ok((_, t)) = named_list(&text) {
+        return Ok((s, (key, t).into()));
+    }
+    // else if let Ok((_, t)) = get_item(s) {
+    //     return Ok((s, (key, t).into()));
+    // }
+
     Ok((s, (key, text).into()))
 }
 
+#[test]
+pub fn esc_test() {
+    let s = esc(r#"C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat"#).unwrap();
+
+    assert_eq!(
+        s,
+        (
+            "",
+            "C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat".to_string()
+        )
+    );
+}
 fn esc(input: &str) -> IResult<&str, String> {
     escaped_transform(
         none_of("\r\n\\\""),
         '\\',
         alt((
+            value("\\", tag("\\")),
             value("\"", tag("\"")),
-            value("\\", tag("\\\\")),
             value("\n", tag("\n")),
             value("\n", tag("\r\n")),
-            value("\n", tag("\r")),
+            value("\r", tag("\r")),
         )),
     )(input)
 }
@@ -79,8 +95,9 @@ fn get_float(s: &str) -> IResult<&str, Item> {
 fn get_num(s: &str) -> IResult<&str, Item> {
     let (s, key) = get_key(s)?;
     let (s, _) = equals(s)?;
-    let (s, text) = i64(s)?;
-    Ok((s, (key, text).into()))
+    let (s, text) = take_until(",")(s)?;
+    let (_, val) = all_consuming(i64)(text)?;
+    Ok((s, (key, val).into()))
 }
 
 fn get_bool(s: &str) -> IResult<&str, Item> {
@@ -107,14 +124,14 @@ fn get_vec(s: &str) -> IResult<&str, Item> {
     let (s, key) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, _) = open(s)?;
-    let (s, v) = separated_list1(tuple((multispace0, tag(","), multispace0)), i64)(s)?;
+    let (s, v) = separated_list1(comma, i64)(s)?;
     let (s, _) = close(s)?;
     Ok((s, (key, v).into()))
 }
 
 pub fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
     let (s, _) = open(s)?;
-    let (s, v) = separated_list1(tuple((multispace0, tag(","), multispace0)), get_item)(s)?;
+    let (s, v) = separated_list1(comma, get_item)(s)?;
     // There might be an optional trailing comma.
     let (s, _) = opt(tuple((multispace0, tag(","), multispace0)))(s)?;
     let (s, _) = close(s)?;
@@ -150,12 +167,9 @@ pub fn named_list(s: &str) -> IResult<&str, NamedList> {
     let (s, k) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, _) = open(s)?;
-    // let (s, _) = quote(s)?;
-    // println!("{s}");
-    let (s, v) = dbg!(separated_list1(
-        comma,
-        delimited(tag("\""), take_until("\""), tag("\""))
-    )(s))?;
+    let (s, v) = separated_list1(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
+    // let (s, v) = separated_list1(comma, esc)(s)?;
+    // dbg!(&v);
     let (s, _) = opt(comma)(s)?;
     let (s, _) = close(s)?;
     Ok((
@@ -165,16 +179,4 @@ pub fn named_list(s: &str) -> IResult<&str, NamedList> {
             values: v.into_iter().map(|x| x.to_string().into()).collect(),
         },
     ))
-}
-
-#[test]
-pub fn testme() {
-    let text = "\"pee\",
-        \"pee\",
-        \"poo\",
-        \"poo\",
-        ";
-    let (s, v) =
-        separated_list1(comma, delimited(tag("\""), take_until("\""), tag("\"")))(text).unwrap();
-    println!("{s} {v:?}")
 }
