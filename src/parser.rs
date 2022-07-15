@@ -45,9 +45,9 @@ fn get_item<'a>(s: &str) -> IResult<&str, Item> {
 fn get_escaped_string(s: &str) -> IResult<&str, Item> {
     let (s, key) = get_key(s)?;
     let (s, _) = equals(s)?;
-    let (s, _) = tag("\"")(s)?;
+    let (s, _) = quote(s)?;
     let (s, text) = esc(s)?;
-    let (s, _) = tag("\"")(s)?;
+    let (s, _) = quote(s)?;
     if let Ok((_, t)) = named_list(&text) {
         return Ok((s, (key, t).into()));
     }
@@ -59,7 +59,7 @@ fn get_escaped_string(s: &str) -> IResult<&str, Item> {
 }
 
 #[test]
-pub fn esc_test() {
+fn esc_test() {
     let s = esc(r#"C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat"#).unwrap();
 
     assert_eq!(
@@ -129,7 +129,7 @@ fn get_vec(s: &str) -> IResult<&str, Item> {
     Ok((s, (key, v).into()))
 }
 
-pub fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
+fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list1(comma, get_item)(s)?;
     // There might be an optional trailing comma.
@@ -138,7 +138,7 @@ pub fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
     Ok((s, v))
 }
 
-pub fn get_key(s: &str) -> IResult<&str, &str> {
+fn get_key(s: &str) -> IResult<&str, &str> {
     let (s, _) = multispace0(s)?;
     // let (s, key) = alphanumeric1(s)?;
     let (s, key) = take_until(" ")(s)?;
@@ -146,28 +146,28 @@ pub fn get_key(s: &str) -> IResult<&str, &str> {
     Ok((s, key))
 }
 
-pub fn quote(s: &str) -> IResult<&str, &str> {
+fn quote(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("\""), multispace0)))(s)
 }
 
-pub fn equals(s: &str) -> IResult<&str, &str> {
+fn equals(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("="), multispace0)))(s)
 }
-pub fn comma(s: &str) -> IResult<&str, &str> {
+fn comma(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag(","), multispace0)))(s)
 }
-pub fn open(s: &str) -> IResult<&str, &str> {
+fn open(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("{"), multispace0)))(s)
 }
-pub fn close(s: &str) -> IResult<&str, &str> {
+fn close(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("}"), multispace0)))(s)
 }
 
-pub fn named_list(s: &str) -> IResult<&str, NamedList> {
+fn named_list(s: &str) -> IResult<&str, NamedList> {
     let (s, k) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, _) = open(s)?;
-    let (s, v) = separated_list1(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
+    let (s, v) = separated_list0(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
     // let (s, v) = separated_list1(comma, esc)(s)?;
     // dbg!(&v);
     let (s, _) = opt(comma)(s)?;

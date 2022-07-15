@@ -7,7 +7,6 @@ pub enum Value {
     String(String),
     Values(Vec<Value>),
     NamedList(NamedList),
-    // Item(Item),
     #[default]
     Unit,
 }
@@ -20,9 +19,6 @@ impl std::fmt::Display for Value {
             Value::Bool(b) => write!(f, "{}", b),
             Value::String(s) => write!(f, "{}", s),
             Value::Values(v) => write!(f, "{:?}", v),
-            // Value::VecItem(v) => write!(f, "{:?}", v),
-            // Value::VecAgpref(v) => write!(f, "{:?}", v),
-            // Value::Agpref(v) => write!(f, "{:?}", v),
             Value::NamedList(nl) => write!(f, "{:?}", nl),
             Value::Unit => write!(f, "{{}}"),
         }
@@ -87,7 +83,7 @@ where
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Item {
+pub(crate) struct Item {
     pub name: String,
     pub value: Value,
 }
