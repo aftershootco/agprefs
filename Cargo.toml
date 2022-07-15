@@ -2,6 +2,11 @@
 name = "agprefs"
 version = "0.1.1"
 edition = "2021"
+license = "MIT"
+description = "A simple parser for the reading agprefs files from lightroom"
+readme = "README.md"
+repository = "https://github.com/aftershootco/agprefs"
+homepage = "https://github.com/aftershootco/agprefs"
 
 [features]
 
