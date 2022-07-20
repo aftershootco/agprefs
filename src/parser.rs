@@ -60,7 +60,6 @@ fn get_escaped_string(s: &str) -> IResult<&str, Item> {
 #[test]
 fn esc_test() {
     let s = esc(r#"C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat"#).unwrap();
-
     assert_eq!(
         s,
         (
@@ -176,7 +175,7 @@ fn named_list(s: &str) -> IResult<&str, NamedList> {
         s,
         NamedList {
             name: k.into(),
-            values: v.into_iter().map(|x| x.to_string().into()).collect(),
+            values: v.into_iter().map(Into::into).collect(),
         },
     ))
 }
