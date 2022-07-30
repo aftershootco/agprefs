@@ -150,3 +150,16 @@ where
         }
     }
 }
+
+impl std::ops::Deref for NamedList {
+    type Target = Vec<Value>;
+    fn deref(&self) -> &Self::Target {
+        &self.values
+    }
+}
+
+impl std::ops::DerefMut for NamedList {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.values
+    }
+}
