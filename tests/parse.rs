@@ -35,3 +35,10 @@ pub fn db() {
     let input = std::fs::read_to_string(file).unwrap();
     Agpref::from_str(&input).unwrap();
 }
+
+#[test]
+pub fn metadata() {
+    let file = Path::new(ASSETS).join("metadata");
+    let input = std::fs::read_to_string(file).unwrap();
+    Agpref::from_str(&input).unwrap();
+}

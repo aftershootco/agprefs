@@ -11,10 +11,10 @@ use nom::{
 };
 impl Agpref {
     pub fn from_str(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
-        Ok(_agprefs(s.as_ref())?)
+        Ok(_agprefs(s.as_ref())?.1)
     }
 }
-fn _agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
+fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>> {
     let (s, name) = get_key(s)?;
     let mut prefs = Agpref::with_name(name);
     let (s, _) = equals(s)?;
@@ -28,7 +28,7 @@ fn _agprefs(s: &str) -> Result<Agpref, nom::Err<nom::error::Error<&str>>> {
         )));
     }
 
-    Ok(prefs)
+    Ok((s, prefs))
 }
 
 fn get_item<'a>(s: &str) -> IResult<&str, Item> {
@@ -38,7 +38,10 @@ fn get_item<'a>(s: &str) -> IResult<&str, Item> {
             get_float,
             alt((
                 get_bool,
-                alt((get_unit, alt((get_vec, get_escaped_string)))),
+                alt((
+                    get_unit,
+                    alt((get_vec, alt((get_escaped_string, get_struct)))),
+                )),
             )),
         )),
     ))(s)
@@ -68,7 +71,18 @@ fn esc_test() {
         )
     );
 }
+#[test]
+fn esc_test_empty() {
+    let s = esc(r#"""#).unwrap();
+    assert_eq!(s, (r#"""#, String::new()));
+}
+
+/// Returns an escaped string from a double escaped string
 fn esc(input: &str) -> IResult<&str, String> {
+    let (input, v) = opt(peek(tag("\"")))(input)?;
+    if v.is_some() {
+        return Ok((input, "".into()));
+    }
     escaped_transform(
         none_of("\r\n\\\""),
         '\\',
@@ -130,18 +144,27 @@ fn get_vec(s: &str) -> IResult<&str, Item> {
     Ok((s, (key, v).into()))
 }
 
+fn get_struct(s: &str) -> IResult<&str, Item> {
+    let (s, name) = get_key(s)?;
+    // let mut prefs = Agpref::with_name(name);
+    let (s, _) = equals(s)?;
+    let (s, v) = item_list(s)?;
+
+    Ok((s, (name, v).into()))
+}
+
 fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list1(comma, get_item)(s)?;
     // There might be an optional trailing comma.
-    let (s, _) = opt(tuple((multispace0, tag(","), multispace0)))(s)?;
+    // let (s, _) = opt(tuple((multispace0, tag(","), multispace0)))(s)?;
+    let (s, _) = opt(comma)(s)?;
     let (s, _) = close(s)?;
     Ok((s, v))
 }
 
 fn get_key(s: &str) -> IResult<&str, &str> {
     let (s, _) = multispace0(s)?;
-    // let (s, key) = alphanumeric1(s)?;
     let (s, key) = take_until(" ")(s)?;
     let (s, _) = multispace0(s)?;
     Ok((s, key))

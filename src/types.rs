@@ -7,6 +7,7 @@ pub enum Value {
     String(String),
     Values(Vec<Value>),
     NamedList(NamedList),
+    Struct(HashMap<String, Value>),
     #[default]
     Unit,
 }
@@ -20,6 +21,7 @@ impl std::fmt::Display for Value {
             Value::String(s) => write!(f, "{}", s),
             Value::Values(v) => write!(f, "{:?}", v),
             Value::NamedList(nl) => write!(f, "{:?}", nl),
+            Value::Struct(s) => write!(f, "{:?}", s),
             Value::Unit => write!(f, "{{}}"),
         }
     }
@@ -64,6 +66,18 @@ impl From<&str> for Value {
 impl From<NamedList> for Value {
     fn from(nl: NamedList) -> Self {
         Value::NamedList(nl)
+    }
+}
+
+impl From<HashMap<String, Value>> for Value {
+    fn from(s: HashMap<String, Value>) -> Self {
+        Value::Struct(s)
+    }
+}
+
+impl From<Vec<Item>> for Value {
+    fn from(vs: Vec<Item>) -> Self {
+        Value::Struct(vs.into_iter().map(|i| (i.name, i.value)).collect())
     }
 }
 
