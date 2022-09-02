@@ -1,5 +1,7 @@
+use serde::*;
 use std::collections::HashMap;
-#[derive(Debug, Clone, Default, PartialEq)]
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub enum Value {
     Int(i64),
     Float(f64),
@@ -115,7 +117,7 @@ where
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Agpref {
     pub name: String,
     pub values: HashMap<String, Value>,
@@ -146,7 +148,7 @@ impl std::ops::DerefMut for Agpref {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NamedList {
     pub name: String,
     pub values: Vec<Value>,

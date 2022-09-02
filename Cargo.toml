@@ -12,4 +12,5 @@ homepage = "https://github.com/aftershootco/agprefs"
 
 [dependencies]
 nom = "7"
+serde = { version = "1.0.144", features = ["derive"] }
 thiserror = "1"
