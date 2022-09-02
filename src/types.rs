@@ -1,7 +1,7 @@
 use serde::*;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum Value {
     Int(i64),
     Float(f64),
@@ -12,6 +12,42 @@ pub enum Value {
     Struct(HashMap<String, Value>),
     #[default]
     Unit,
+}
+
+impl Serialize for Value {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::*;
+        match self {
+            Value::Int(i) => serializer.serialize_i64(*i),
+            Value::Float(f) => serializer.serialize_f64(*f),
+            Value::Bool(b) => serializer.serialize_bool(*b),
+            Value::String(s) => serializer.serialize_str(&s),
+            Value::Values(v) => {
+                let mut vs = serializer.serialize_seq(Some(v.len()))?;
+                for i in v {
+                    vs.serialize_element(i)?;
+                }
+                vs.end()
+            }
+            Value::NamedList(nl) => {
+                let mut nls = serializer.serialize_struct("NamedList", 2)?;
+                nls.serialize_field("name", &nl.name)?;
+                nls.serialize_field("values", &nl.values)?;
+                nls.end()
+            }
+            Value::Struct(s) => {
+                let mut ss = serializer.serialize_map(Some(s.len()))?;
+                for (k, v) in s {
+                    ss.serialize_entry(&k, v)?;
+                }
+                ss.end()
+            }
+            Value::Unit => serializer.serialize_unit(),
+        }
+    }
 }
 
 impl std::fmt::Display for Value {
@@ -117,7 +153,7 @@ where
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize)]
 pub struct Agpref {
     pub name: String,
     pub values: HashMap<String, Value>,
@@ -148,7 +184,7 @@ impl std::ops::DerefMut for Agpref {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct NamedList {
     pub name: String,
     pub values: Vec<Value>,
