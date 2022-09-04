@@ -33,9 +33,9 @@ impl Serialize for Value {
                 vs.end()
             }
             Value::NamedList(nl) => {
-                let mut nls = serializer.serialize_struct("NamedList", 2)?;
-                nls.serialize_field("name", &nl.name)?;
-                nls.serialize_field("values", &nl.values)?;
+                let mut nls = serializer.serialize_map(Some(1))?;
+                nls.serialize_entry(&nl.name, &nl.values)?;
+                // nls.serialize_field("values", &nl.values)?;
                 nls.end()
             }
             Value::Struct(s) => {
@@ -153,10 +153,22 @@ where
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Agpref {
     pub name: String,
     pub values: HashMap<String, Value>,
+}
+
+impl Serialize for Agpref {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::*;
+        let mut ss = serializer.serialize_map(Some(1))?;
+        ss.serialize_entry(&self.name, &self.values)?;
+        ss.end()
+    }
 }
 
 impl Agpref {
