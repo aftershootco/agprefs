@@ -40,7 +40,10 @@ fn get_item<'a>(s: &str) -> IResult<&str, Item> {
                 get_bool,
                 alt((
                     get_unit,
-                    alt((get_vec, alt((get_escaped_string, get_struct)))),
+                    alt((
+                        get_vec,
+                        alt((get_escaped_string, alt((get_struct, get_sstruct)))),
+                    )),
                 )),
             )),
         )),
@@ -153,6 +156,23 @@ fn get_struct(s: &str) -> IResult<&str, Item> {
     Ok((s, (name, v).into()))
 }
 
+// TODO: Do this properly
+fn get_sstruct(s: &str) -> IResult<&str, Item> {
+    let (s, name) = get_key(s)?;
+    let (s, _) = equals(s)?;
+    let (s, v) = item_llist(s)?;
+
+    Ok((s, (name, v).into()))
+}
+
+// TODO: Do this properly
+fn item_llist(s: &str) -> IResult<&str, Vec<Item>> {
+    let (s, _) = double_open(s)?;
+    let (s, v) = separated_list1(comma, get_item)(s)?;
+    let (s, _) = double_close(s)?;
+    Ok((s, v))
+}
+
 fn item_list(s: &str) -> IResult<&str, Vec<Item>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list1(comma, get_item)(s)?;
@@ -180,11 +200,21 @@ fn equals(s: &str) -> IResult<&str, &str> {
 fn comma(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag(","), multispace0)))(s)
 }
+
 fn open(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("{"), multispace0)))(s)
 }
+
+fn double_open(s: &str) -> IResult<&str, &str> {
+    recognize(tuple((open, open)))(s)
+}
+
 fn close(s: &str) -> IResult<&str, &str> {
     recognize(tuple((multispace0, tag("}"), multispace0)))(s)
+}
+
+fn double_close(s: &str) -> IResult<&str, &str> {
+    recognize(tuple((close, close)))(s)
 }
 
 fn named_list(s: &str) -> IResult<&str, NamedList> {
