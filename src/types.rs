@@ -10,6 +10,7 @@ pub enum Value {
     Values(Vec<Value>),
     NamedList(NamedList),
     Struct(HashMap<String, Value>),
+    Opaque(String),
     #[default]
     Unit,
 }
@@ -25,6 +26,9 @@ impl Serialize for Value {
             Value::Float(f) => serializer.serialize_f64(*f),
             Value::Bool(b) => serializer.serialize_bool(*b),
             Value::String(s) => serializer.serialize_str(&s),
+
+            Value::Opaque(s) => serializer.serialize_str(&s),
+
             Value::Values(v) => {
                 let mut vs = serializer.serialize_seq(Some(v.len()))?;
                 for i in v {
@@ -60,6 +64,7 @@ impl std::fmt::Display for Value {
             Value::Values(v) => write!(f, "{:?}", v),
             Value::NamedList(nl) => write!(f, "{:?}", nl),
             Value::Struct(s) => write!(f, "{:?}", s),
+            Value::Opaque(o) => write!(f, "{}", o),
             Value::Unit => write!(f, "{{}}"),
         }
     }

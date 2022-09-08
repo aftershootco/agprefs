@@ -165,6 +165,13 @@ fn get_sstruct(s: &str) -> IResult<&str, Item> {
     Ok((s, (name, v).into()))
 }
 
+fn get_unquoted_string(s: &str) -> IResult<&str, Item> {
+    let (s, key) = get_key(s)?;
+    let (s, _) = equals(s)?;
+    let (s, text) = take_until(",")(s)?;
+    Ok((s, (key, text).into()))
+}
+
 // TODO: Do this properly
 fn item_llist(s: &str) -> IResult<&str, Vec<Item>> {
     let (s, _) = double_open(s)?;
