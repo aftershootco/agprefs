@@ -1,6 +1,6 @@
 [package]
 name = "agprefs"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 license = "MIT"
 description = "A simple parser for the reading agprefs files from lightroom"
