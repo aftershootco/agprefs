@@ -34,22 +34,14 @@ fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>
 fn get_item<'a>(s: &str) -> IResult<&str, Item> {
     alt((
         get_num,
-        alt((
-            get_float,
-            alt((
-                get_bool,
-                alt((
-                    get_unit,
-                    alt((
-                        get_vec,
-                        alt((
-                            get_escaped_string,
-                            alt((get_struct, alt((get_sstruct, value_list)))),
-                        )),
-                    )),
-                )),
-            )),
-        )),
+        get_float,
+        get_bool,
+        get_unit,
+        get_vec,
+        get_escaped_string,
+        get_struct,
+        get_sstruct,
+        value_list,
     ))(s)
 }
 
