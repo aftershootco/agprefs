@@ -42,7 +42,10 @@ fn get_item<'a>(s: &str) -> IResult<&str, Item> {
                     get_unit,
                     alt((
                         get_vec,
-                        alt((get_escaped_string, alt((get_struct, get_sstruct)))),
+                        alt((
+                            get_escaped_string,
+                            alt((get_struct, alt((get_sstruct, value_list)))),
+                        )),
                     )),
                 )),
             )),
@@ -73,6 +76,8 @@ fn esc_test() {
             "C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat".to_string()
         )
     );
+    let s = "d 0.578103 0.415124";
+    assert_eq!(esc(s).unwrap(), ("", s.to_string()));
 }
 #[test]
 fn esc_test_empty() {
@@ -158,6 +163,7 @@ fn get_struct(s: &str) -> IResult<&str, Item> {
 
 // TODO: Do this properly
 fn get_sstruct(s: &str) -> IResult<&str, Item> {
+    // println!("\x1b[33m{s}\x1b[0m");
     let (s, name) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, v) = item_llist(s)?;
@@ -225,7 +231,7 @@ fn double_close(s: &str) -> IResult<&str, &str> {
 }
 
 fn named_list(s: &str) -> IResult<&str, NamedList> {
-    let (s, k) = get_key(s)?;
+    let (s, key) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
@@ -234,8 +240,21 @@ fn named_list(s: &str) -> IResult<&str, NamedList> {
     Ok((
         s,
         NamedList {
-            name: k.into(),
+            name: key.into(),
             values: v.into_iter().map(Into::into).collect(),
         },
+    ))
+}
+
+fn value_list(s: &str) -> IResult<&str, Item> {
+    let (s, key) = get_key(s)?;
+    let (s, _) = equals(s)?;
+    let (s, _) = open(s)?;
+    let (s, v) = separated_list0(comma, delimited(tag("\""), esc, tag("\"")))(s)?;
+    let (s, _) = opt(comma)(s)?;
+    let (s, _) = close(s)?;
+    Ok((
+        s,
+        (key, Value::Values(v.into_iter().map(Into::into).collect())).into(),
     ))
 }
