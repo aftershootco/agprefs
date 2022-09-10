@@ -12,10 +12,9 @@ pub enum Value {
     String(String),
     Values(Vec<Value>),
     Struct(HashMap<String, Value>),
-
     // Extra items
-    Opaque(String),
-    NamedList(NamedList),
+    // Opaque(String),
+    // NamedList(NamedList),
 }
 
 impl Serialize for Value {
@@ -29,21 +28,12 @@ impl Serialize for Value {
             Value::Float(f) => serializer.serialize_f64(*f),
             Value::Bool(b) => serializer.serialize_bool(*b),
             Value::String(s) => serializer.serialize_str(&s),
-
-            Value::Opaque(s) => serializer.serialize_str(&s),
-
             Value::Values(v) => {
                 let mut vs = serializer.serialize_seq(Some(v.len()))?;
                 for i in v {
                     vs.serialize_element(i)?;
                 }
                 vs.end()
-            }
-            Value::NamedList(nl) => {
-                let mut nls = serializer.serialize_map(Some(1))?;
-                nls.serialize_entry(&nl.name, &nl.values)?;
-                // nls.serialize_field("values", &nl.values)?;
-                nls.end()
             }
             Value::Struct(s) => {
                 let mut ss = serializer.serialize_map(Some(s.len()))?;
@@ -65,10 +55,10 @@ impl std::fmt::Display for Value {
             Value::Bool(b) => write!(f, "{}", b),
             Value::String(s) => write!(f, "{}", s),
             Value::Values(v) => write!(f, "{:?}", v),
-            Value::NamedList(nl) => write!(f, "{:?}", nl),
             Value::Struct(s) => write!(f, "{:?}", s),
-            Value::Opaque(o) => write!(f, "{}", o),
             Value::Unit => write!(f, "{{}}"),
+            // Value::NamedList(nl) => write!(f, "{:?}", nl),
+            // Value::Opaque(o) => write!(f, "{}", o),
         }
     }
 }
@@ -109,11 +99,11 @@ impl From<&str> for Value {
     }
 }
 
-impl From<NamedList> for Value {
-    fn from(nl: NamedList) -> Self {
-        Value::NamedList(nl)
-    }
-}
+// impl From<NamedList> for Value {
+//     fn from(nl: NamedList) -> Self {
+//         Value::NamedList(nl)
+//     }
+// }
 
 impl From<HashMap<String, Value>> for Value {
     fn from(s: HashMap<String, Value>) -> Self {
