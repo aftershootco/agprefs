@@ -1,5 +1,4 @@
-s = 
-{
+s = {
     AutoLateralCA = 0,
     Blacks2012 = 0,
     Brightness = 0,
@@ -80,4 +79,3 @@ s =
     WhiteBalance = "As Shot",
     Whites2012 = 0
 }
-

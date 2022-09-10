@@ -3,16 +3,19 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum Value {
+    // Core types
+    #[default]
+    Unit,
     Int(i64),
     Float(f64),
     Bool(bool),
     String(String),
     Values(Vec<Value>),
-    NamedList(NamedList),
     Struct(HashMap<String, Value>),
+
+    // Extra items
     Opaque(String),
-    #[default]
-    Unit,
+    NamedList(NamedList),
 }
 
 impl Serialize for Value {
