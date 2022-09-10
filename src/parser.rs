@@ -76,7 +76,7 @@ fn esc(input: &str) -> IResult<&str, String> {
 
 fn get_key(s: &str) -> IResult<&str, &str> {
     let (s, _) = multispace0(s)?;
-    let (s, key) = take_until(" ")(s)?;
+    let (s, key) = take_till1(|c| c == ' ' || c == '=')(s)?;
     let (s, _) = multispace0(s)?;
     Ok((s, key))
 }
@@ -199,6 +199,7 @@ mod value {
         // println!("{GREEN}{s}...{RESET}", s = k);
         let (s, _) = equals(s)?;
         let (s, v) = get_value(s)?;
+        // dbg!(&v);
         Ok((s, (k, v)))
     }
 
