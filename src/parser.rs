@@ -28,6 +28,8 @@ fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>
     let mut prefs = Agpref::with_name(kv.0);
     if let Value::Struct(v) = kv.1 {
         prefs.values = v;
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(s, ErrorKind::Fail)));
     }
     Ok((s, prefs))
 }
@@ -100,6 +102,8 @@ pub fn get_value(s: &str) -> IResult<&str, Value> {
     alt((
         map(get_vec, Value::from),
         map(get_struct, Value::from),
+        #[cfg(feature = "namedlist")]
+        map(get_namedlist, Value::from),
         map(get_string, Value::from),
         map(get_num, Value::from),
         map(get_float, Value::from),
@@ -115,7 +119,8 @@ fn get_string(s: &str) -> IResult<&str, String> {
     let (s, _) = quote(s)?;
     let (s, text) = esc(s)?;
     let (s, _) = quote(s)?;
-    Ok((s, text.into()))
+
+    Ok((s, text))
 }
 
 fn get_num(s: &str) -> IResult<&str, i64> {
@@ -194,7 +199,34 @@ fn get_struct(s: &str) -> IResult<&str, HashMap<String, Value>> {
     Ok((s, v.into_iter().map(|v| (v.0.to_owned(), v.1)).collect()))
 }
 
-// fn get_struct(s: &str) -> IResult<&str>
+#[cfg(feature = "namedlist")]
+fn get_namedlist(s: &str) -> IResult<&str, Value> {
+    let (s, _) = quote(s)?;
+    let (s, text) = esc(s)?;
+    let (s, _) = quote(s)?;
+
+    let (ts, kv) = get_key_value(&text).map_err(|_| {
+        nom::Err::Error(ParseError::from_error_kind(
+            "Failed to parse as named list",
+            ErrorKind::AlphaNumeric,
+        ))
+    })?;
+    if !ts.is_empty() {
+        return Err(nom::Err::Error(ParseError::from_error_kind(
+            "Failed to parse as named list",
+            ErrorKind::AlphaNumeric,
+        )));
+    }
+
+    if let (name, Value::Values(v)) = kv {
+        Ok((s, (name, v).into()))
+    } else {
+        Err(nom::Err::Error(ParseError::from_error_kind(
+            "Failed to parse as named list",
+            ErrorKind::AlphaNumeric,
+        )))
+    }
+}
 
 pub fn take_eov(s: &str) -> IResult<&str, &str> {
     take_till1(|c| c == ',' || c == ' ' || c == '}' || c == '\n')(s)

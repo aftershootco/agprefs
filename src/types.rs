@@ -14,7 +14,8 @@ pub enum Value {
     Struct(HashMap<String, Value>),
     // Extra items
     // Opaque(String),
-    // NamedList(NamedList),
+    #[cfg(feature = "namedlist")]
+    NamedList(NamedList),
 }
 
 impl Serialize for Value {
@@ -27,7 +28,7 @@ impl Serialize for Value {
             Value::Int(i) => serializer.serialize_i64(*i),
             Value::Float(f) => serializer.serialize_f64(*f),
             Value::Bool(b) => serializer.serialize_bool(*b),
-            Value::String(s) => serializer.serialize_str(&s),
+            Value::String(s) => serializer.serialize_str(s),
             Value::Values(v) => {
                 let mut vs = serializer.serialize_seq(Some(v.len()))?;
                 for i in v {
@@ -43,6 +44,8 @@ impl Serialize for Value {
                 ss.end()
             }
             Value::Unit => serializer.serialize_unit(),
+            #[cfg(feature = "namedlist")]
+            Value::NamedList(n) => n.serialize(serializer),
         }
     }
 }
@@ -57,7 +60,8 @@ impl std::fmt::Display for Value {
             Value::Values(v) => write!(f, "{:?}", v),
             Value::Struct(s) => write!(f, "{:?}", s),
             Value::Unit => write!(f, "{{}}"),
-            // Value::NamedList(nl) => write!(f, "{:?}", nl),
+            #[cfg(feature = "namedlist")]
+            Value::NamedList(nl) => write!(f, "{:?}", nl),
             // Value::Opaque(o) => write!(f, "{}", o),
         }
     }
@@ -99,11 +103,12 @@ impl From<&str> for Value {
     }
 }
 
-// impl From<NamedList> for Value {
-//     fn from(nl: NamedList) -> Self {
-//         Value::NamedList(nl)
-//     }
-// }
+#[cfg(feature = "namedlist")]
+impl<T: Into<NamedList>> From<T> for Value {
+    fn from(nl: T) -> Self {
+        Value::NamedList(nl.into())
+    }
+}
 
 impl From<HashMap<String, Value>> for Value {
     fn from(s: HashMap<String, Value>) -> Self {
@@ -116,12 +121,6 @@ impl From<Vec<Item>> for Value {
         Value::Struct(vs.into_iter().map(|i| (i.name, i.value)).collect())
     }
 }
-
-// impl From<Agpref> for Value {
-//     fn from(a: Agpref) -> Self {
-//         Value::Agpref(a)
-//     }
-// }
 
 impl<T> From<Vec<T>> for Value
 where
