@@ -24,9 +24,9 @@ impl Agpref {
 // pub const PINK: &str = "\x1b[35m";
 
 fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>> {
-    let (s, kv) = get_key_value(s)?;
-    let mut prefs = Agpref::with_name(kv.0);
-    if let Value::Struct(v) = kv.1 {
+    let (s, (name, value)) = get_key_value(s)?;
+    let mut prefs = Agpref::with_name(name);
+    if let Value::Struct(v) = value {
         prefs.values = v;
     } else {
         return Err(nom::Err::Error(nom::error::Error::new(s, ErrorKind::Fail)));
@@ -77,6 +77,10 @@ fn get_key(s: &str) -> IResult<&str, &str> {
     let (s, key) = take_till1(|c| c == ' ' || c == '=')(s)?;
     let (s, _) = multispace0(s)?;
     Ok((s, key))
+}
+
+pub fn take_eov(s: &str) -> IResult<&str, &str> {
+    take_till1(|c| c == ',' || c == ' ' || c == '}' || c == '\n')(s)
 }
 
 fn quote(s: &str) -> IResult<&str, &str> {
@@ -226,8 +230,4 @@ fn get_namedlist(s: &str) -> IResult<&str, Value> {
             ErrorKind::AlphaNumeric,
         )))
     }
-}
-
-pub fn take_eov(s: &str) -> IResult<&str, &str> {
-    take_till1(|c| c == ',' || c == ' ' || c == '}' || c == '\n')(s)
 }
