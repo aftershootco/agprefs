@@ -1,0 +1,36 @@
+prefs = {
+	Adobe_successfulUpgrades1100000 = "pickle = {\
+	[\"/Users/aayushmanchoudhary/work/fivek/fivek/fivek_dataset/raw_photos/fivek.lrcat\"] = {\
+		catalogType = \"lr\",\
+		id = \"8D1CC22D-EDFA-4F37-92FE-6A4D858A797D\",\
+		upgraded = \"/Users/aayushmanchoudhary/work/fivek/fivek/fivek_dataset/raw_photos/fivek-v11.lrcat\",\
+	},\
+}\
+",
+	libraryToLoad20 = "/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/7/Dan and Tracy -v10-v11.lrcat",
+	recentLibraries20 = "recentLibraries = {\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/7/Dan and Tracy -v10-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/1/Brad and LIz.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/6/AaronKristenNikhil.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/4/Kevin and Brydie-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/2/Chris and Corrianne-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/5/Vinny and Kelsey-v10-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/8/Tyler and Olivia-v11.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset_copy/3/Jeremy and Sarah-v11.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/yuyu2/yuyu2.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/yuyu/yuyu.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/Lightroom/Lightroom Catalog.lrcat\",\
+	\"/Users/aayushmanchoudhary/work/fivek/fivek/fivek_dataset/raw_photos/fivek-v11.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/rCLRCC/rCLRCC.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/testLRCC/testLRCC.lrcat\",\
+	\"/Users/aayushmanchoudhary/Pictures/lrCC/lrCC.lrcat\",\
+}\
+",
+	recentLibraries20_missing = "recentMissingLibraries = {\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Justin/Dataset/1_copy/Brad and LIz.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Mike J/Dataset/1_copy/AS_TEST_NEUTRAL.lrcat\",\
+	\"/Volumes/T5/AfterShoot Editing/Profiles/Mike J/Dataset/1/AS_TEST_NEUTRAL.lrcat\",\
+}\
+",
+	recentLibraryBehavior20 = "UseMostRecentLibrary",
+}

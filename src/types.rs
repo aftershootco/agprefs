@@ -3,16 +3,19 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum Value {
+    // Core types
+    #[default]
+    Unit,
     Int(i64),
     Float(f64),
     Bool(bool),
     String(String),
     Values(Vec<Value>),
-    NamedList(NamedList),
     Struct(HashMap<String, Value>),
-    Opaque(String),
-    #[default]
-    Unit,
+    // Extra items
+    // Opaque(String),
+    #[cfg(feature = "namedlist")]
+    NamedList(NamedList),
 }
 
 impl Serialize for Value {
@@ -25,22 +28,13 @@ impl Serialize for Value {
             Value::Int(i) => serializer.serialize_i64(*i),
             Value::Float(f) => serializer.serialize_f64(*f),
             Value::Bool(b) => serializer.serialize_bool(*b),
-            Value::String(s) => serializer.serialize_str(&s),
-
-            Value::Opaque(s) => serializer.serialize_str(&s),
-
+            Value::String(s) => serializer.serialize_str(s),
             Value::Values(v) => {
                 let mut vs = serializer.serialize_seq(Some(v.len()))?;
                 for i in v {
                     vs.serialize_element(i)?;
                 }
                 vs.end()
-            }
-            Value::NamedList(nl) => {
-                let mut nls = serializer.serialize_map(Some(1))?;
-                nls.serialize_entry(&nl.name, &nl.values)?;
-                // nls.serialize_field("values", &nl.values)?;
-                nls.end()
             }
             Value::Struct(s) => {
                 let mut ss = serializer.serialize_map(Some(s.len()))?;
@@ -50,6 +44,8 @@ impl Serialize for Value {
                 ss.end()
             }
             Value::Unit => serializer.serialize_unit(),
+            #[cfg(feature = "namedlist")]
+            Value::NamedList(n) => n.serialize(serializer),
         }
     }
 }
@@ -62,10 +58,11 @@ impl std::fmt::Display for Value {
             Value::Bool(b) => write!(f, "{}", b),
             Value::String(s) => write!(f, "{}", s),
             Value::Values(v) => write!(f, "{:?}", v),
-            Value::NamedList(nl) => write!(f, "{:?}", nl),
             Value::Struct(s) => write!(f, "{:?}", s),
-            Value::Opaque(o) => write!(f, "{}", o),
             Value::Unit => write!(f, "{{}}"),
+            #[cfg(feature = "namedlist")]
+            Value::NamedList(nl) => write!(f, "{:?}", nl),
+            // Value::Opaque(o) => write!(f, "{}", o),
         }
     }
 }
@@ -106,9 +103,10 @@ impl From<&str> for Value {
     }
 }
 
-impl From<NamedList> for Value {
-    fn from(nl: NamedList) -> Self {
-        Value::NamedList(nl)
+#[cfg(feature = "namedlist")]
+impl<T: Into<NamedList>> From<T> for Value {
+    fn from(nl: T) -> Self {
+        Value::NamedList(nl.into())
     }
 }
 
@@ -123,12 +121,6 @@ impl From<Vec<Item>> for Value {
         Value::Struct(vs.into_iter().map(|i| (i.name, i.value)).collect())
     }
 }
-
-// impl From<Agpref> for Value {
-//     fn from(a: Agpref) -> Self {
-//         Value::Agpref(a)
-//     }
-// }
 
 impl<T> From<Vec<T>> for Value
 where
