@@ -1,5 +1,5 @@
+use indexmap::IndexMap as HashMap;
 use serde::*;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum Value {

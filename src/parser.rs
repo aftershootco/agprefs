@@ -1,4 +1,5 @@
 use crate::types::*;
+use indexmap::IndexMap as HashMap;
 use nom::{
     branch::alt,
     bytes::complete::*,
@@ -9,7 +10,6 @@ use nom::{
     sequence::*,
     IResult,
 };
-use std::collections::HashMap;
 impl Agpref {
     pub fn from_str(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
         Ok(_agprefs(s.as_ref())?.1)
@@ -113,9 +113,6 @@ pub fn get_value(s: &str) -> IResult<&str, Value> {
         map(get_float, Value::from),
         map(get_bool, Value::from),
         map(get_unit, Value::from),
-        // map(get_sstruct, |v| Value::Sstruct(v)),
-        // map(named_list, Value::NamedList),
-        // map(value_list, |v| v),
     ))(s)
 }
 

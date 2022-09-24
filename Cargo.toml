@@ -9,6 +9,9 @@ repository = "https://github.com/aftershootco/agprefs"
 homepage = "https://github.com/aftershootco/agprefs"
 
 [dependencies]
+cookie-factory = "0.3.2"
+escape_string = "0.1.2"
+indexmap = { version = "1.9.1", features = ["serde"] }
 nom = "7"
 serde = { version = "1.0.144", features = ["derive"] }
 thiserror = "1"
