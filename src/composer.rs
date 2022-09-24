@@ -99,7 +99,11 @@ pub fn compose_namedlist<W: Write>(
     let mut len = namedlist.values.len();
     for value in &namedlist.values {
         result = if let Value::String(s) = value {
-            tuple((string("\\\""), string(escape_string(s)), string("\\\"")))(result)?
+            tuple((
+                string("\\\""),
+                string(escape_string(&escape_string(s))),
+                string("\\\""),
+            ))(result)?
         } else {
             compose_value(&value, result)?
         };
@@ -114,12 +118,14 @@ pub fn compose_namedlist<W: Write>(
 }
 
 #[cfg(feature = "namedlist")]
-pub fn escape_string(input: &str) -> std::borrow::Cow<str> {
-    if memchr::memchr3(b'\\', b'"', b'\n', input.as_bytes()).is_some()
-        || memchr::memchr2(b'\r', b'\t', input.as_bytes()).is_some()
+pub fn escape_string<'str>(
+    input: &'str (impl AsRef<str> + 'str + ?Sized),
+) -> std::borrow::Cow<'str, str> {
+    if memchr::memchr3(b'\\', b'"', b'\n', input.as_ref().as_bytes()).is_some()
+        || memchr::memchr2(b'\r', b'\t', input.as_ref().as_bytes()).is_some()
     {
-        let mut result = String::with_capacity(input.len());
-        for c in input.chars() {
+        let mut result = String::with_capacity(input.as_ref().len());
+        for c in input.as_ref().chars() {
             match c {
                 '\\' => result.push_str("\\\\"),
                 '"' => result.push_str("\\\""),
@@ -129,8 +135,9 @@ pub fn escape_string(input: &str) -> std::borrow::Cow<str> {
                 _ => result.push(c),
             }
         }
-        result.into()
+        std::borrow::Cow::Owned(result)
     } else {
-        input.into()
+        std::borrow::Cow::Borrowed(input.as_ref())
     }
 }
+
