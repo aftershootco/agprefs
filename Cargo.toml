@@ -1,6 +1,6 @@
 [package]
 name = "agprefs"
-version = "0.1.6"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "A simple parser for the reading agprefs files from lightroom"
@@ -9,13 +9,14 @@ repository = "https://github.com/aftershootco/agprefs"
 homepage = "https://github.com/aftershootco/agprefs"
 
 [dependencies]
-cookie-factory = "0.3.2"
-escape_string = "0.1.2"
+cookie-factory = { version = "0.3.2", optional = true }
 indexmap = { version = "1.9.1", features = ["serde"] }
+memchr = "2.5.0"
 nom = "7"
 serde = { version = "1.0.144", features = ["derive"] }
 thiserror = "1"
 
 [features]
-default = ["namedlist"]
+default = ["namedlist", "composer"]
+composer = ["dep:cookie-factory"]
 namedlist = []

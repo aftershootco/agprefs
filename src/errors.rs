@@ -10,6 +10,7 @@ pub enum Errors {
     Nom(String),
     #[error("{0}")]
     Other(String),
+    #[cfg(feature = "composer")]
     #[error("{0}")]
     Compose(#[from] cookie_factory::GenError),
 }

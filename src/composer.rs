@@ -82,40 +82,55 @@ pub fn compose_value<W: Write>(
         Value::Unit => string("{ }")(writer)?,
 
         #[cfg(feature = "namedlist")]
-        // Value::NamedList(nl) => compose_namedlist(nl, writer)?,
-        Value::NamedList(_nl) => unimplemented!(),
+        Value::NamedList(nl) => compose_namedlist(nl, writer)?,
     };
     Ok(result)
 }
 
-// #[cfg(feature = "namedlist")]
-// pub fn compose_namedlist<W: Write>(
-//     namedlist: &crate::types::NamedList,
-//     writer: cookie_factory::WriteContext<W>,
-// ) -> GenResult<W> {
-//     let mut result = writer;
-//     result = string("\"")(result)?;
-//     result = string(&namedlist.name)(result)?;
-//     result = string(" = {\\\n")(result)?;
-//     let mut len = namedlist.values.len();
-//     for value in &namedlist.values {
-//         result = if let Value::String(s) = value {
-//             tuple((string("\\\""), string(escape_string(s)), string("\\\"")))(result)?
-//         } else {
-//             compose_value(&value, result)?
-//         };
-//         if len > 1 {
-//             result = string(",\\\n")(result)?;
-//             len -= 1;
-//         }
-//     }
-//     result = string(" }\\\n")(result)?;
-//     result = string("\"")(result)?;
-//     Ok(result)
-// }
+#[cfg(feature = "namedlist")]
+pub fn compose_namedlist<W: Write>(
+    namedlist: &crate::types::NamedList,
+    writer: cookie_factory::WriteContext<W>,
+) -> GenResult<W> {
+    let mut result = writer;
+    result = string("\"")(result)?;
+    result = string(&namedlist.name)(result)?;
+    result = string(" = {\\\n")(result)?;
+    let mut len = namedlist.values.len();
+    for value in &namedlist.values {
+        result = if let Value::String(s) = value {
+            tuple((string("\\\""), string(escape_string(s)), string("\\\"")))(result)?
+        } else {
+            compose_value(&value, result)?
+        };
+        if len > 1 {
+            result = string(",\\\n")(result)?;
+            len -= 1;
+        }
+    }
+    result = string(" }\\\n")(result)?;
+    result = string("\"")(result)?;
+    Ok(result)
+}
 
-// pub fn escape_string(input: &str) -> std::borrow::Cow<str> {
-//     // use nom::*;
-//     use nom::character::complete::one_of;
-//     one_of("\n\\\"")
-// }
+#[cfg(feature = "namedlist")]
+pub fn escape_string(input: &str) -> std::borrow::Cow<str> {
+    if memchr::memchr3(b'\\', b'"', b'\n', input.as_bytes()).is_some()
+        || memchr::memchr2(b'\r', b'\t', input.as_bytes()).is_some()
+    {
+        let mut result = String::with_capacity(input.len());
+        for c in input.chars() {
+            match c {
+                '\\' => result.push_str("\\\\"),
+                '"' => result.push_str("\\\""),
+                '\n' => result.push_str("\\n"),
+                '\r' => result.push_str("\\r"),
+                '\t' => result.push_str("\\t"),
+                _ => result.push(c),
+            }
+        }
+        result.into()
+    } else {
+        input.into()
+    }
+}

@@ -1,4 +1,5 @@
-pub mod composer;
+#[cfg(feature = "composer")]
+mod composer;
 mod errors;
 mod parser;
 mod types;
