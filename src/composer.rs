@@ -1,22 +1,24 @@
 use crate::types::{Agpref, Value};
 use cookie_factory::{combinator::string, sequence::tuple, GenResult};
+use std::io::BufWriter;
 use std::io::Write;
 
-pub fn compose_agpref(agpref: &Agpref, mut w: impl Write) {
-    let mut buf = Vec::new();
-    let www = cookie_factory::WriteContext::from(&mut buf);
-    let gen = gen_agpref(agpref, www);
-    match gen {
-        Ok(_) => {
-            let _ = w.write(&buf);
-        }
-        Err(_) => {
-            println!("Error composing agpref");
-        }
+impl Agpref {
+    pub fn write<W: Write>(&self, mut w: W) -> Result<(), crate::errors::Errors> {
+        let mut bw = BufWriter::new(&mut w);
+        let cfw = cookie_factory::WriteContext::from(&mut bw);
+        gen_agpref(self, cfw)?;
+        Ok(())
+    }
+    pub fn to_str(&self) -> Result<String, crate::errors::Errors> {
+        let mut buf = Vec::new();
+        let cfw = cookie_factory::WriteContext::from(&mut buf);
+        gen_agpref(self, cfw)?;
+        Ok(String::from_utf8(buf)?)
     }
 }
 
-pub fn gen_agpref<W: Write>(
+fn gen_agpref<W: Write>(
     agpref: &Agpref,
     writer: cookie_factory::WriteContext<W>,
 ) -> cookie_factory::GenResult<W> {
@@ -83,7 +85,6 @@ pub fn compose_value<W: Write>(
         // Value::NamedList(nl) => compose_namedlist(nl, writer)?,
         Value::NamedList(_nl) => unimplemented!(),
     };
-    // let result = string("\n")(result)?;
     Ok(result)
 }
 
