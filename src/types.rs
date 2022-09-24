@@ -1,4 +1,5 @@
 use indexmap::IndexMap as HashMap;
+#[cfg(feature = "serde")]
 use serde::*;
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -18,6 +19,7 @@ pub enum Value {
     NamedList(NamedList),
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for Value {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -62,7 +64,6 @@ impl std::fmt::Display for Value {
             Value::Unit => write!(f, "{{}}"),
             #[cfg(feature = "namedlist")]
             Value::NamedList(nl) => write!(f, "{:?}", nl),
-            // Value::Opaque(o) => write!(f, "{}", o),
         }
     }
 }
@@ -156,6 +157,7 @@ pub struct Agpref {
     pub values: HashMap<String, Value>,
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for Agpref {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -193,7 +195,8 @@ impl std::ops::DerefMut for Agpref {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct NamedList {
     pub name: String,
     pub values: Vec<Value>,
