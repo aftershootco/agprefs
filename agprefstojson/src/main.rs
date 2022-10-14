@@ -21,7 +21,13 @@ fn main() -> anyhow::Result<()> {
         std::io::stdin().read_to_string(&mut input)?;
     }
     if args.encode {
-        let ajson = serde_json::from_str::<agprefs::Agpref>(&input);
+        let ajson = serde_json::from_str::<agprefs::Agpref>(&input)?;
+        let agprefs = ajson.to_str()?;
+        if let Some(ref output_path) = args.output {
+            std::fs::write(output_path, agprefs)?;
+        } else {
+            println!("{}", agprefs);
+        }
     } else {
         let agprefs = agprefs::Agpref::from_str(&input)?;
         let ajson = serde_json::to_string_pretty(&agprefs)?;

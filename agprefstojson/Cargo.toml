@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # agprefs = { git = "https://github.com/aftershootco/agprefs", version = "0.1.4" }
-agprefs = { path = "../" }
+agprefs = { path = "../", features = ["serde", "composer"] }
 anyhow = "1.0.63"
 clap = { version = "4.0.15", features = ["derive"] }
 serde = "1.0.144"
