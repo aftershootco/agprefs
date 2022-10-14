@@ -8,6 +8,8 @@ pub struct Args {
     pub output: Option<String>,
     #[clap(short, long, value_parser)]
     pub input: Option<String>,
+    #[clap(short, long)]
+    pub encode: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -18,12 +20,16 @@ fn main() -> anyhow::Result<()> {
     } else {
         std::io::stdin().read_to_string(&mut input)?;
     }
-    let agprefs = agprefs::Agpref::from_str(&input)?;
-    let ajson = serde_json::to_string_pretty(&agprefs)?;
-    if let Some(ref output) = args.output {
-        std::fs::write(output, ajson)?;
+    if args.encode {
+        let ajson = serde_json::from_str::<agprefs::Agpref>(&input);
     } else {
-        println!("{}", ajson);
+        let agprefs = agprefs::Agpref::from_str(&input)?;
+        let ajson = serde_json::to_string_pretty(&agprefs)?;
+        if let Some(ref output) = args.output {
+            std::fs::write(output, ajson)?;
+        } else {
+            println!("{}", ajson);
+        }
     }
     Ok(())
 }

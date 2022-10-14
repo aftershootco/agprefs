@@ -42,3 +42,14 @@ pub fn metadata() {
     let input = std::fs::read_to_string(file).unwrap();
     Agpref::from_str(&input).unwrap();
 }
+
+#[cfg(feature = "serde")]
+#[test]
+pub fn serialize_metadata() {
+    let file = Path::new(ASSETS).join("metadata");
+    let input = std::fs::read_to_string(file).unwrap();
+    let agpref = Agpref::from_str(&input).unwrap();
+    let out = serde_json::to_string(&agpref).unwrap();
+    let agpref2 = serde_json::from_str(&out).unwrap();
+    assert_eq!(agpref, agpref2);
+}

@@ -13,8 +13,6 @@ pub enum Value {
     String(String),
     Values(Vec<Value>),
     Struct(HashMap<String, Value>),
-    // Extra items
-    // Opaque(String),
     #[cfg(feature = "namedlist")]
     NamedList(NamedList),
 }
@@ -50,6 +48,112 @@ impl Serialize for Value {
             Value::NamedList(n) => n.serialize(serializer),
         }
     }
+}
+#[cfg(all(feature = "serde", feature = "composer"))]
+impl<'de> Deserialize<'de> for Value {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::*;
+        struct ValueVisitor;
+        impl<'de> Visitor<'de> for ValueVisitor {
+            type Value = Value;
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a value")
+            }
+            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::Int(v))
+            }
+            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::Int(v as i64))
+            }
+            fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::Float(v))
+            }
+            fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::Bool(v))
+            }
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::String(v.to_string()))
+            }
+            fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::String(v))
+            }
+            fn visit_seq<V>(self, mut visitor: V) -> Result<Self::Value, V::Error>
+            where
+                V: SeqAccess<'de>,
+            {
+                let mut values = Vec::new();
+                while let Some(value) = visitor.next_element()? {
+                    values.push(value);
+                }
+                Ok(Value::Values(values))
+            }
+            fn visit_map<V>(self, mut visitor: V) -> Result<Self::Value, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut values = HashMap::new();
+                while let Some((key, value)) = visitor.next_entry()? {
+                    values.insert(key, value);
+                }
+                Ok(Value::Struct(values))
+            }
+            fn visit_unit<E>(self) -> Result<Self::Value, E>
+            where
+                E: Error,
+            {
+                Ok(Value::Unit)
+            }
+            fn visit_none<E>(self) -> Result<Self::Value, E> {
+                Ok(Value::Unit)
+            }
+        }
+        deserializer.deserialize_any(ValueVisitor)
+    }
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn test_value() {
+    use crate::types::Value;
+
+    fn assert_type(value: Value) {
+        let str_out = serde_json::to_string(&value).expect("Failed to serialize");
+        let origninal_val = serde_json::from_str::<Value>(&str_out).expect("Failed to deserialize");
+        assert_eq!(value, origninal_val);
+    }
+
+    assert_type(Value::Int(69));
+    assert_type(Value::Float(42.0));
+    assert_type(Value::Bool(true));
+    assert_type(Value::String("test".to_string()));
+    assert_type(Value::Values(vec![Value::Int(69), Value::Float(42.0)]));
+    assert_type(Value::Struct(
+        vec![("test".to_string(), Value::Int(666))]
+            .into_iter()
+            .collect(),
+    ));
+    assert_type(Value::Unit);
 }
 
 impl std::fmt::Display for Value {
@@ -167,6 +271,45 @@ impl Serialize for Agpref {
         let mut ss = serializer.serialize_map(Some(1))?;
         ss.serialize_entry(&self.name, &self.values)?;
         ss.end()
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for Agpref {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::*;
+        pub struct AgprefVisitor;
+        impl<'de> Visitor<'de> for AgprefVisitor {
+            type Value = Agpref;
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("struct Agpref")
+            }
+            fn visit_map<V>(self, mut visitor: V) -> Result<Self::Value, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut name = None;
+                let mut values = None;
+                while let Some(key) = visitor.next_key()? {
+                    match key {
+                        n => {
+                            if values.is_some() {
+                                return Err(Error::duplicate_field("values"));
+                            }
+                            values = Some(visitor.next_value()?);
+                            name = Some(n);
+                        }
+                    }
+                }
+                let name = name.ok_or_else(|| Error::missing_field("values"))?;
+                let values = values.ok_or_else(|| Error::missing_field("values"))?;
+                Ok(Agpref { name, values })
+            }
+        }
+        deserializer.deserialize_struct("Agpref", &["values"], AgprefVisitor)
     }
 }
 
