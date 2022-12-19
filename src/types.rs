@@ -14,6 +14,7 @@ pub enum Value {
     Values(Vec<Value>),
     Struct(HashMap<String, Value>),
     #[cfg(feature = "namedlist")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
     NamedList(NamedList),
 }
 
@@ -256,6 +257,7 @@ where
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
+/// A named list of key value pairs that can be used to represent a text field of lrcat files
 pub struct Agpref {
     pub name: String,
     pub values: HashMap<String, Value>,
@@ -338,13 +340,18 @@ impl std::ops::DerefMut for Agpref {
     }
 }
 
+#[cfg(feature = "namedlist")]
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
+/// Named list of values for parsing agprefs files
+/// Which store the recent lrcat catalogs
 pub struct NamedList {
     pub name: String,
     pub values: Vec<Value>,
 }
 
+#[cfg(feature = "namedlist")]
 impl<S, V> From<(S, V)> for NamedList
 where
     S: Into<String>,
@@ -358,6 +365,7 @@ where
     }
 }
 
+#[cfg(feature = "namedlist")]
 impl std::ops::Deref for NamedList {
     type Target = Vec<Value>;
     fn deref(&self) -> &Self::Target {
@@ -365,6 +373,7 @@ impl std::ops::Deref for NamedList {
     }
 }
 
+#[cfg(feature = "namedlist")]
 impl std::ops::DerefMut for NamedList {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.values

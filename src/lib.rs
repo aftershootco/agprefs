@@ -5,4 +5,7 @@ mod parser;
 mod types;
 
 pub use errors::Errors;
-pub use types::{Agpref, NamedList, Value};
+#[cfg(feature = "namedlist")]
+#[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
+pub use types::NamedList;
+pub use types::{Agpref, Value};

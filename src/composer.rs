@@ -4,12 +4,14 @@ use std::io::BufWriter;
 use std::io::Write;
 
 impl Agpref {
+    /// Write the struct to a buffer
     pub fn write<W: Write>(&self, mut w: W) -> Result<(), crate::errors::Errors> {
         let mut bw = BufWriter::new(&mut w);
         let cfw = cookie_factory::WriteContext::from(&mut bw);
         gen_agpref(self, cfw)?;
         Ok(())
     }
+    /// Write the struct to a string
     pub fn to_str(&self) -> Result<String, crate::errors::Errors> {
         let mut buf = Vec::new();
         let cfw = cookie_factory::WriteContext::from(&mut buf);
@@ -140,4 +142,3 @@ pub fn escape_string<'str>(
         std::borrow::Cow::Borrowed(input.as_ref())
     }
 }
-

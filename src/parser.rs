@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::types::*;
 use indexmap::IndexMap as HashMap;
 use nom::{
@@ -10,9 +12,19 @@ use nom::{
     sequence::*,
     IResult,
 };
+
 impl Agpref {
+    /// Parse the given string into an Agpref struct.
     pub fn from_str(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
         Ok(_agprefs(s.as_ref())?.1)
+    }
+}
+
+impl FromStr for Agpref {
+    type Err = crate::errors::Errors;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_str(s)
     }
 }
 
