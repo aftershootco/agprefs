@@ -1,4 +1,7 @@
-use indexmap::IndexMap as HashMap;
+// use indexmap::IndexMap as HashMap;
+use std::collections::hash_map::RandomState;
+type HashMap<K, V, S = RandomState> = indexmap::IndexMap<K, V, S>;
+
 #[cfg(feature = "serde")]
 use serde::*;
 
@@ -113,6 +116,7 @@ impl<'de> Deserialize<'de> for Value {
             where
                 V: MapAccess<'de>,
             {
+                // let mut values = HashMap::with_capacity_and_hasher(1, Default::default());
                 let mut values = HashMap::new();
                 while let Some((key, value)) = visitor.next_entry()? {
                     values.insert(key, value);

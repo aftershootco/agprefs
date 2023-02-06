@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use crate::types::*;
-use indexmap::IndexMap as HashMap;
+use std::collections::hash_map::RandomState;
+type HashMap<K, V, S = RandomState> = indexmap::IndexMap<K, V, S>;
 use nom::{
     branch::alt,
     bytes::complete::*,
