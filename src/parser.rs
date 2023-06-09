@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::types::*;
 use std::collections::hash_map::RandomState;
 type HashMap<K, V, S = RandomState> = indexmap::IndexMap<K, V, S>;
@@ -13,28 +11,22 @@ use nom::{
     sequence::*,
     IResult,
 };
+use std::borrow::Cow;
 
-impl Agpref {
+impl Agpref<'_> {
     /// Parse the given string into an Agpref struct.
-    pub fn from_str(s: impl AsRef<str>) -> Result<Agpref, crate::errors::Errors> {
-        Ok(_agprefs(s.as_ref())?.1)
+    pub fn from_str(s: &str) -> Result<Agpref, crate::errors::Errors> {
+        Ok(_agprefs(s)?.1)
     }
 }
 
-impl FromStr for Agpref {
-    type Err = crate::errors::Errors;
+// impl<'a> FromStr for Agpref<'a> {
+//     type Err = crate::errors::Errors;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::from_str(s)
-    }
-}
-
-// pub const BLUE: &str = "\x1b[34m";
-// pub const GREEN: &str = "\x1b[32m";
-// pub const RED: &str = "\x1b[31m";
-// pub const RESET: &str = "\x1b[0m";
-// pub const YELLOW: &str = "\x1b[33m";
-// pub const PINK: &str = "\x1b[35m";
+//     fn from_str(s: &'a str) -> Result<Agpref<'a>, Self::Err> {
+//         Self::from_str(s)
+//     }
+// }
 
 fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>> {
     let (s, (name, value)) = get_key_value(s)?;
@@ -54,24 +46,31 @@ fn esc_test() {
         s,
         (
             "",
-            "C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat".to_string()
+            "C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat".into()
         )
     );
     let s = "d 0.578103 0.415124";
-    assert_eq!(esc(s).unwrap(), ("", s.to_string()));
+    assert_eq!(esc(s).unwrap(), ("", s.to_string().into()));
 }
 #[test]
 fn esc_test_empty() {
     let s = esc(r#"""#).unwrap();
-    assert_eq!(s, (r#"""#, String::new()));
+    assert_eq!(s, (r#"""#, String::new().into()));
+}
+#[test]
+fn esc_test_cow() {
+    let s = esc(r#" "\"" "#).unwrap();
+    assert_eq!(s, ("", r"\\".into()));
 }
 
 /// Returns an escaped string from a double escaped string
-fn esc(input: &str) -> IResult<&str, String> {
+fn esc<'e>(input: &str) -> IResult<&str, Cow<'e, str>> {
+    // Is it an empty string ?
     let (input, v) = opt(peek(tag("\"")))(input)?;
     if v.is_some() {
         return Ok((input, "".into()));
     }
+    // Not an empty string
     escaped_transform(
         none_of("\r\n\\\""),
         '\\',
@@ -83,6 +82,7 @@ fn esc(input: &str) -> IResult<&str, String> {
             value("\r", tag("\r")),
         )),
     )(input)
+    .map(|(s, r)| (s, Cow::Owned(r)))
 }
 
 fn get_key(s: &str) -> IResult<&str, &str> {
@@ -129,7 +129,7 @@ pub fn get_value(s: &str) -> IResult<&str, Value> {
     ))(s)
 }
 
-fn get_string(s: &str) -> IResult<&str, String> {
+fn get_string(s: &str) -> IResult<&str, std::borrow::Cow<'_, str>> {
     let (s, _) = quote(s)?;
     let (s, text) = esc(s)?;
     let (s, _) = quote(s)?;
@@ -190,7 +190,7 @@ fn get_unit(s: &str) -> IResult<&str, ()> {
     Ok((s, ()))
 }
 
-fn get_vec(s: &str) -> IResult<&str, Vec<Value>> {
+fn get_vec<'v>(s: &'v str) -> IResult<&str, Vec<Value<'v>>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, get_value)(s)?;
     let (s, _) = opt(comma)(s)?;
@@ -198,28 +198,32 @@ fn get_vec(s: &str) -> IResult<&str, Vec<Value>> {
     Ok((s, v))
 }
 
-pub fn get_key_value(s: &str) -> IResult<&str, (&str, Value)> {
+pub fn get_key_value<'v>(s: &'v str) -> IResult<&str, (&str, Value<'v>)> {
     let (s, k) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, v) = get_value(s)?;
     Ok((s, (k, v)))
 }
 
-fn get_struct(s: &str) -> IResult<&str, HashMap<String, Value>> {
+fn get_struct<'v>(s: &'v str) -> IResult<&str, HashMap<Cow<'v, str>, Value<'v>>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, get_key_value)(s)?;
     let (s, _) = opt(comma)(s)?;
     let (s, _) = close(s)?;
-    Ok((s, v.into_iter().map(|v| (v.0.to_owned(), v.1)).collect()))
+    Ok((
+        s,
+        v.into_iter().map(|v| (Cow::Borrowed(v.0), v.1)).collect(),
+    ))
 }
 
 #[cfg(feature = "namedlist")]
-fn get_namedlist(s: &str) -> IResult<&str, Value> {
+fn get_namedlist<'v>(s: &'v str) -> IResult<&'v str, Value<'v>> {
     let (s, _) = quote(s)?;
     let (s, text) = esc(s)?;
     let (s, _) = quote(s)?;
 
-    let (ts, kv) = get_key_value(&text).map_err(|_| {
+    use std::borrow::Borrow;
+    let (ts, kv) = get_key_value(text.borrow()).map_err(|_| {
         nom::Err::Error(ParseError::from_error_kind(
             "Failed to parse as named list",
             ErrorKind::AlphaNumeric,

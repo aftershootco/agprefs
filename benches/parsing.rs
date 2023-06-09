@@ -8,10 +8,16 @@ fn criterion_benchmark(c: &mut Criterion) {
     ))
     .unwrap();
     c.bench_function("parsing basic", |b| {
-        b.iter(|| Agpref::from_str(black_box(&basic)))
+        b.iter(|| {
+            let s = black_box(&basic);
+            Agpref::from_str(s).unwrap();
+        })
     });
 
-    let agpref = Agpref::from_str(&basic).unwrap();
+    let agpref = {
+        let s: &str = &basic;
+        Agpref::from_str(s).unwrap()
+    };
     c.bench_function("composing basic", |b| {
         b.iter(|| Agpref::to_str(black_box(&agpref)))
     });

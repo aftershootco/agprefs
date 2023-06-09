@@ -3,7 +3,7 @@ use cookie_factory::{combinator::string, sequence::tuple, GenResult};
 use std::io::BufWriter;
 use std::io::Write;
 
-impl Agpref {
+impl Agpref<'_> {
     /// Write the struct to a buffer
     pub fn write<W: Write>(&self, mut w: W) -> Result<(), crate::errors::Errors> {
         let mut bw = BufWriter::new(&mut w);
@@ -32,7 +32,7 @@ fn gen_agpref<W: Write>(
     for (name, value) in agpref.values.iter() {
         result = string(name)(result)?;
         result = string(" = ")(result)?;
-        result = compose_value(&value, result)?;
+        result = compose_value(value, result)?;
         if len > 1 {
             result = string(",\n")(result)?;
             len -= 1;
@@ -56,7 +56,7 @@ pub fn compose_value<W: Write>(
             result = string("{ ")(result)?;
             let mut len = values.len();
             for value in values {
-                result = compose_value(&value, result)?;
+                result = compose_value(value, result)?;
                 if len > 1 {
                     result = string(",\n")(result)?;
                     len -= 1;

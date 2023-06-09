@@ -21,7 +21,7 @@ nom = "7"
 thiserror = "1"
 
 [features]
-default = ["namedlist", "composer", "serde"]
+default = ["composer", "serde"]
 
 namedlist = []
 composer = ["dep:cookie-factory", "dep:memchr"]

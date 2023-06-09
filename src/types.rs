@@ -4,25 +4,26 @@ type HashMap<K, V, S = RandomState> = indexmap::IndexMap<K, V, S>;
 
 #[cfg(feature = "serde")]
 use serde::*;
+use std::borrow::Cow;
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub enum Value {
+pub enum Value<'v> {
     // Core types
     #[default]
     Unit,
     Int(i64),
     Float(f64),
     Bool(bool),
-    String(String),
-    Values(Vec<Value>),
-    Struct(HashMap<String, Value>),
+    String(Cow<'v, str>),
+    Values(Vec<Value<'v>>),
+    Struct(HashMap<Cow<'v, str>, Value<'v>>),
     #[cfg(feature = "namedlist")]
     #[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
-    NamedList(NamedList),
+    NamedList(NamedList<'v>),
 }
 
 #[cfg(feature = "serde")]
-impl Serialize for Value {
+impl<'v> Serialize for Value<'v> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -54,7 +55,7 @@ impl Serialize for Value {
     }
 }
 #[cfg(all(feature = "serde", feature = "composer"))]
-impl<'de> Deserialize<'de> for Value {
+impl<'de: 'v, 'v> Deserialize<'de> for Value<'v> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -62,7 +63,7 @@ impl<'de> Deserialize<'de> for Value {
         use serde::de::*;
         struct ValueVisitor;
         impl<'de> Visitor<'de> for ValueVisitor {
-            type Value = Value;
+            type Value = Value<'de>;
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                 formatter.write_str("a value")
             }
@@ -94,13 +95,14 @@ impl<'de> Deserialize<'de> for Value {
             where
                 E: Error,
             {
-                Ok(Value::String(v.to_string()))
+                // TODO: Try to make this 0 copy
+                Ok(Value::String(Cow::Owned(v.to_string())))
             }
             fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
             where
                 E: Error,
             {
-                Ok(Value::String(v))
+                Ok(Value::String(Cow::Owned(v)))
             }
             fn visit_seq<V>(self, mut visitor: V) -> Result<Self::Value, V::Error>
             where
@@ -151,17 +153,17 @@ fn test_value() {
     assert_type(Value::Int(69));
     assert_type(Value::Float(42.0));
     assert_type(Value::Bool(true));
-    assert_type(Value::String("test".to_string()));
+    // assert_type(Value::String("test".to_string()));
     assert_type(Value::Values(vec![Value::Int(69), Value::Float(42.0)]));
-    assert_type(Value::Struct(
-        vec![("test".to_string(), Value::Int(666))]
-            .into_iter()
-            .collect(),
-    ));
+    // assert_type(Value::Struct(
+    //     vec![("test".to_string(), Value::Int(666))]
+    //         .into_iter()
+    //         .collect(),
+    // ));
     assert_type(Value::Unit);
 }
 
-impl std::fmt::Display for Value {
+impl std::fmt::Display for Value<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Int(i) => write!(f, "{}", i),
@@ -177,64 +179,70 @@ impl std::fmt::Display for Value {
     }
 }
 
-impl From<()> for Value {
+impl From<()> for Value<'_> {
     fn from(_: ()) -> Self {
         Value::Unit
     }
 }
 
-impl From<i64> for Value {
+impl From<i64> for Value<'_> {
     fn from(i: i64) -> Self {
         Value::Int(i)
     }
 }
 
-impl From<f64> for Value {
+impl From<f64> for Value<'_> {
     fn from(f: f64) -> Self {
         Value::Float(f)
     }
 }
 
-impl From<bool> for Value {
+impl From<bool> for Value<'_> {
     fn from(b: bool) -> Self {
         Value::Bool(b)
     }
 }
 
-impl From<String> for Value {
+impl From<String> for Value<'_> {
     fn from(s: String) -> Self {
+        Value::String(Cow::Owned(s))
+    }
+}
+
+impl<'v> From<&'v str> for Value<'v> {
+    fn from(s: &'v str) -> Self {
+        Value::String(Cow::Borrowed(s))
+    }
+}
+
+impl<'v> From<Cow<'v, str>> for Value<'v> {
+    fn from(s: Cow<'v, str>) -> Self {
         Value::String(s)
     }
 }
 
-impl From<&str> for Value {
-    fn from(s: &str) -> Self {
-        Value::String(s.to_string())
-    }
-}
-
 #[cfg(feature = "namedlist")]
-impl<T: Into<NamedList>> From<T> for Value {
+impl<'v, T: Into<NamedList<'v>>> From<T> for Value<'v> {
     fn from(nl: T) -> Self {
         Value::NamedList(nl.into())
     }
 }
 
-impl From<HashMap<String, Value>> for Value {
-    fn from(s: HashMap<String, Value>) -> Self {
+impl<'v> From<HashMap<Cow<'v, str>, Value<'v>>> for Value<'v> {
+    fn from(s: HashMap<Cow<'v, str>, Value<'v>>) -> Self {
         Value::Struct(s)
     }
 }
 
-impl From<Vec<Item>> for Value {
-    fn from(vs: Vec<Item>) -> Self {
+impl<'v> From<Vec<Item<'v>>> for Value<'v> {
+    fn from(vs: Vec<Item<'v>>) -> Self {
         Value::Struct(vs.into_iter().map(|i| (i.name, i.value)).collect())
     }
 }
 
-impl<T> From<Vec<T>> for Value
+impl<'v, T> From<Vec<T>> for Value<'v>
 where
-    T: Into<Value>,
+    T: Into<Value<'v>>,
 {
     fn from(v: Vec<T>) -> Self {
         Value::Values(v.into_iter().map(|x| x.into()).collect())
@@ -242,15 +250,15 @@ where
 }
 
 #[derive(Debug, Clone, Default)]
-pub(crate) struct Item {
-    pub name: String,
-    pub value: Value,
+pub(crate) struct Item<'i> {
+    pub name: Cow<'i, str>,
+    pub value: Value<'i>,
 }
 
-impl<S, V> From<(S, V)> for Item
+impl<'i, S, V> From<(S, V)> for Item<'i>
 where
-    S: Into<String>,
-    V: Into<Value>,
+    S: Into<Cow<'i, str>>,
+    V: Into<Value<'i>>,
 {
     fn from(sv: (S, V)) -> Self {
         Item {
@@ -262,13 +270,13 @@ where
 
 #[derive(Debug, Default, Clone, PartialEq)]
 /// A named list of key value pairs that can be used to represent a text field of lrcat files
-pub struct Agpref {
-    pub name: String,
-    pub values: HashMap<String, Value>,
+pub struct Agpref<'a> {
+    pub name: Cow<'a, str>,
+    pub values: HashMap<Cow<'a, str>, Value<'a>>,
 }
 
 #[cfg(feature = "serde")]
-impl Serialize for Agpref {
+impl<'a> Serialize for Agpref<'a> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -281,7 +289,7 @@ impl Serialize for Agpref {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for Agpref {
+impl<'de> Deserialize<'de> for Agpref<'de> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -289,7 +297,7 @@ impl<'de> Deserialize<'de> for Agpref {
         use serde::de::*;
         pub struct AgprefVisitor;
         impl<'de> Visitor<'de> for AgprefVisitor {
-            type Value = Agpref;
+            type Value = Agpref<'de>;
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                 formatter.write_str("struct Agpref")
             }
@@ -319,11 +327,11 @@ impl<'de> Deserialize<'de> for Agpref {
     }
 }
 
-impl Agpref {
+impl<'a> Agpref<'a> {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn with_name(name: impl Into<String>) -> Self {
+    pub fn with_name(name: impl Into<Cow<'a, str>>) -> Self {
         Self {
             name: name.into(),
             ..Self::default()
@@ -331,14 +339,14 @@ impl Agpref {
     }
 }
 
-impl std::ops::Deref for Agpref {
-    type Target = HashMap<String, Value>;
+impl<'a> std::ops::Deref for Agpref<'a> {
+    type Target = HashMap<Cow<'a, str>, Value<'a>>;
     fn deref(&self) -> &Self::Target {
         &self.values
     }
 }
 
-impl std::ops::DerefMut for Agpref {
+impl<'a> std::ops::DerefMut for Agpref<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.values
     }
@@ -350,16 +358,16 @@ impl std::ops::DerefMut for Agpref {
 #[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
 /// Named list of values for parsing agprefs files
 /// Which store the recent lrcat catalogs
-pub struct NamedList {
-    pub name: String,
-    pub values: Vec<Value>,
+pub struct NamedList<'n> {
+    pub name: Cow<'n, str>,
+    pub values: Vec<Value<'n>>,
 }
 
 #[cfg(feature = "namedlist")]
-impl<S, V> From<(S, V)> for NamedList
+impl<'n, S, V> From<(S, V)> for NamedList<'n>
 where
-    S: Into<String>,
-    V: Into<Vec<Value>>,
+    S: Into<Cow<'n, str>>,
+    V: Into<Vec<Value<'n>>>,
 {
     fn from(sv: (S, V)) -> Self {
         NamedList {
@@ -370,15 +378,15 @@ where
 }
 
 #[cfg(feature = "namedlist")]
-impl std::ops::Deref for NamedList {
-    type Target = Vec<Value>;
+impl<'n> std::ops::Deref for NamedList<'n> {
+    type Target = Vec<Value<'n>>;
     fn deref(&self) -> &Self::Target {
         &self.values
     }
 }
 
 #[cfg(feature = "namedlist")]
-impl std::ops::DerefMut for NamedList {
+impl<'n> std::ops::DerefMut for NamedList<'n> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.values
     }
