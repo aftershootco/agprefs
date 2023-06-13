@@ -9,12 +9,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     .unwrap();
     c.bench_function("parsing basic", |b| {
         b.iter(|| {
-            // let mut count = 1;
-            // while count < 1000000 {
-            //     count += 1;
             let s = black_box(&basic);
             Agpref::from_str(s).unwrap();
-            // }
         })
     });
 }
