@@ -7,15 +7,13 @@ fn criterion_benchmark(c: &mut Criterion) {
         "/tests/assets/db.agprefs"
     ))
     .unwrap();
-    c.bench_function("parsing basic", |b| {
-        b.iter(|| {
-            // let mut count = 1;
-            // while count < 1000000 {
-            //     count += 1;
-            let s = black_box(&basic);
-            Agpref::from_str(s).unwrap();
-            // }
-        })
+    Agpref::from_str(&basic).unwrap();
+    let agpref = {
+        let s: &str = &basic;
+        Agpref::from_str(s).unwrap()
+    };
+    c.bench_function("composing basic", |b| {
+        b.iter(|| Agpref::to_str(black_box(&agpref)))
     });
 }
 
