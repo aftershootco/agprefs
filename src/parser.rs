@@ -15,7 +15,13 @@ use std::borrow::Cow;
 
 impl Agpref<'_> {
     /// Parse the given string into an Agpref struct.
+    #[deprecated]
     pub fn from_str(s: &str) -> Result<Agpref, crate::errors::Errors> {
+        Self::parse(s)
+    }
+
+    #[inline(always)]
+    pub fn parse(s: &str) -> Result<Agpref, crate::errors::Errors> {
         Ok(_agprefs(s)?.1)
     }
 }
@@ -31,10 +37,11 @@ impl Agpref<'_> {
 fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>> {
     let (s, (name, value)) = get_key_value(s)?;
     let mut prefs = Agpref::with_name(name);
-    if let Value::Struct(v) = value {
-        prefs.values = v;
-    } else {
-        return Err(nom::Err::Error(nom::error::Error::new(s, ErrorKind::Fail)));
+    match value {
+        Value::Struct(_) => prefs.values = value,
+        Value::Values(_) => prefs.values = value,
+
+        _ => return Err(nom::Err::Error(nom::error::Error::new(s, ErrorKind::Fail))),
     }
     Ok((s, prefs))
 }
@@ -70,9 +77,8 @@ fn esc(input: &str) -> IResult<&str, Cow<'_, str>> {
     if v.is_some() {
         return Ok((input, Cow::Borrowed("")));
     }
-    let orig = input;
 
-    let (input, ret) = escaped(
+    escaped_transform(
         none_of("\r\n\\\""),
         '\\',
         alt((
@@ -82,24 +88,8 @@ fn esc(input: &str) -> IResult<&str, Cow<'_, str>> {
             value("\n", tag("\r\n")),
             value("\r", tag("\r")),
         )),
-    )(input)?;
-
-    if peek(tag::<&str, &str, ()>("\""))(input).is_ok() {
-        return Ok((input, Cow::Borrowed(ret)));
-    } else {
-        escaped_transform(
-            none_of("\r\n\\\""),
-            '\\',
-            alt((
-                value("\\", tag("\\")),
-                value("\"", tag("\"")),
-                value("\n", tag("\n")),
-                value("\n", tag("\r\n")),
-                value("\r", tag("\r")),
-            )),
-        )(orig)
-        .map(|(s, r)| (s, Cow::Owned(r)))
-    }
+    )(input)
+    .map(|(s, r)| (s, Cow::Owned(r)))
 }
 
 fn get_key(s: &str) -> IResult<&str, &str> {
@@ -207,7 +197,7 @@ fn get_unit(s: &str) -> IResult<&str, ()> {
     Ok((s, ()))
 }
 
-fn get_vec<'v>(s: &'v str) -> IResult<&str, Vec<Value<'v>>> {
+fn get_vec(s: &str) -> IResult<&str, Vec<Value<'_>>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, get_value)(s)?;
     let (s, _) = opt(comma)(s)?;
@@ -215,14 +205,14 @@ fn get_vec<'v>(s: &'v str) -> IResult<&str, Vec<Value<'v>>> {
     Ok((s, v))
 }
 
-pub fn get_key_value<'v>(s: &'v str) -> IResult<&str, (&str, Value<'v>)> {
+pub fn get_key_value(s: &str) -> IResult<&str, (&str, Value<'_>)> {
     let (s, k) = get_key(s)?;
     let (s, _) = equals(s)?;
     let (s, v) = get_value(s)?;
     Ok((s, (k, v)))
 }
 
-fn get_struct<'v>(s: &'v str) -> IResult<&str, HashMap<Cow<'v, str>, Value<'v>>> {
+fn get_struct(s: &str) -> IResult<&str, HashMap<Cow<'_, str>, Value<'_>>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, get_key_value)(s)?;
     let (s, _) = opt(comma)(s)?;

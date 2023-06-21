@@ -17,9 +17,97 @@ pub enum Value<'v> {
     String(Cow<'v, str>),
     Values(Vec<Value<'v>>),
     Struct(HashMap<Cow<'v, str>, Value<'v>>),
-    #[cfg(feature = "namedlist")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "namedlist")))]
-    NamedList(NamedList<'v>),
+}
+
+macro_rules! into_getter {
+    ($name:ident, $ty:ty, $variant:ident) => {
+        pub fn $name(self) -> Option<$ty> {
+            match self {
+                Value::$variant(v) => Some(v),
+                _ => None,
+            }
+        }
+    };
+}
+
+impl<'v> Value<'v> {
+    pub fn into_static(self) -> Value<'static> {
+        match self {
+            Value::Unit => Value::Unit,
+            Value::Int(i) => Value::Int(i),
+            Value::Float(f) => Value::Float(f),
+            Value::Bool(b) => Value::Bool(b),
+            Value::String(s) => Value::String(Cow::Owned(s.into_owned())),
+            Value::Values(v) => Value::Values(v.into_iter().map(|v| v.into_static()).collect()),
+            Value::Struct(s) => Value::Struct(
+                s.into_iter()
+                    .map(|(k, v)| (Cow::Owned(k.into_owned()), v.into_static()))
+                    .collect(),
+            ),
+        }
+    }
+
+    pub fn get_unit(&self) -> Option<()> {
+        match self {
+            Value::Unit => Some(()),
+            _ => None,
+        }
+    }
+
+    pub fn get_int(&self) -> Option<i64> {
+        match self {
+            Value::Int(i) => Some(*i),
+            _ => None,
+        }
+    }
+
+    pub fn get_float(&self) -> Option<f64> {
+        match self {
+            Value::Float(f) => Some(*f),
+            _ => None,
+        }
+    }
+
+    pub fn get_bool(&self) -> Option<bool> {
+        match self {
+            Value::Bool(b) => Some(*b),
+            _ => None,
+        }
+    }
+
+    pub fn get_string(&self) -> Option<&str> {
+        match self {
+            Value::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn get_values(&self) -> Option<&[Value<'v>]> {
+        match self {
+            Value::Values(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    pub fn get_struct(&self) -> Option<&HashMap<Cow<'v, str>, Value<'v>>> {
+        match self {
+            Value::Struct(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn into_unit(self) -> Option<()> {
+        match self {
+            Value::Unit => Some(()),
+            _ => None,
+        }
+    }
+    into_getter!(into_int, i64, Int);
+    into_getter!(into_float, f64, Float);
+    into_getter!(into_bool, bool, Bool);
+    into_getter!(into_string, Cow<'v, str>, String);
+    into_getter!(into_values, Vec<Value<'v>>, Values);
+    into_getter!(into_struct, HashMap<Cow<'v, str>, Value<'v>>, Struct);
 }
 
 #[cfg(feature = "serde")]
@@ -272,7 +360,7 @@ where
 /// A named list of key value pairs that can be used to represent a text field of lrcat files
 pub struct Agpref<'a> {
     pub name: Cow<'a, str>,
-    pub values: HashMap<Cow<'a, str>, Value<'a>>,
+    pub values: Value<'a>,
 }
 
 #[cfg(feature = "serde")]
@@ -308,15 +396,12 @@ impl<'de> Deserialize<'de> for Agpref<'de> {
                 let mut name = None;
                 let mut values = None;
                 while let Some(key) = visitor.next_key()? {
-                    match key {
-                        n => {
-                            if values.is_some() {
-                                return Err(Error::duplicate_field("values"));
-                            }
-                            values = Some(visitor.next_value()?);
-                            name = Some(n);
-                        }
+                    let n = key;
+                    if values.is_some() {
+                        return Err(Error::duplicate_field("values"));
                     }
+                    values = Some(visitor.next_value()?);
+                    name = Some(n);
                 }
                 let name = name.ok_or_else(|| Error::missing_field("values"))?;
                 let values = values.ok_or_else(|| Error::missing_field("values"))?;
@@ -340,7 +425,7 @@ impl<'a> Agpref<'a> {
 }
 
 impl<'a> std::ops::Deref for Agpref<'a> {
-    type Target = HashMap<Cow<'a, str>, Value<'a>>;
+    type Target = Value<'a>;
     fn deref(&self) -> &Self::Target {
         &self.values
     }
