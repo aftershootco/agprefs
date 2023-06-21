@@ -30,6 +30,17 @@ macro_rules! into_getter {
     };
 }
 
+macro_rules! mut_getter {
+    ($name:ident, $ty:ty, $variant:ident) => {
+        pub fn $name(&mut self) -> Option<&mut $ty> {
+            match self {
+                Value::$variant(v) => Some(v),
+                _ => None,
+            }
+        }
+    };
+}
+
 impl<'v> Value<'v> {
     pub fn into_static(self) -> Value<'static> {
         match self {
@@ -47,11 +58,8 @@ impl<'v> Value<'v> {
         }
     }
 
-    pub fn get_unit(&self) -> Option<()> {
-        match self {
-            Value::Unit => Some(()),
-            _ => None,
-        }
+    pub fn is_unit(&self) -> bool {
+        matches!(self, Value::Unit)
     }
 
     pub fn get_int(&self) -> Option<i64> {
@@ -96,18 +104,19 @@ impl<'v> Value<'v> {
         }
     }
 
-    pub fn into_unit(self) -> Option<()> {
-        match self {
-            Value::Unit => Some(()),
-            _ => None,
-        }
-    }
     into_getter!(into_int, i64, Int);
     into_getter!(into_float, f64, Float);
     into_getter!(into_bool, bool, Bool);
     into_getter!(into_string, Cow<'v, str>, String);
     into_getter!(into_values, Vec<Value<'v>>, Values);
     into_getter!(into_struct, HashMap<Cow<'v, str>, Value<'v>>, Struct);
+
+    mut_getter!(get_mut_int, i64, Int);
+    mut_getter!(get_mut_float, f64, Float);
+    mut_getter!(get_mut_bool, bool, Bool);
+    mut_getter!(get_mut_string, Cow<'v, str>, String);
+    mut_getter!(get_mut_values, Vec<Value<'v>>, Values);
+    mut_getter!(get_mut_struct, HashMap<Cow<'v, str>, Value<'v>>, Struct);
 }
 
 #[cfg(feature = "serde")]
