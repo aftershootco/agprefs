@@ -9,6 +9,6 @@ name = "agprefstojson"
 crate-type = ["cdylib"]
 
 [dependencies]
-agprefs = { version = "0.2.2", path = ".." }
+agprefs = { version = "0.3.1", path = ".." }
 pyo3 = { version = "0.17.3", features = ["extension-module"] }
 serde_json = "1.0.87"

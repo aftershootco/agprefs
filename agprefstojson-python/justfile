@@ -1,0 +1,2 @@
+python39:
+    maturin build -i 3.9
