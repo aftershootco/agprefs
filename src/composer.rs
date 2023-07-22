@@ -167,37 +167,8 @@ pub fn compose_value<W: Write>(
             result
         }
         Value::Unit => string("{ }")(writer)?,
+        _ => unimplemented!(),
     };
-    Ok(result)
-}
-
-#[cfg(feature = "namedlist")]
-pub fn compose_namedlist<W: Write>(
-    namedlist: &crate::types::NamedList,
-    writer: cookie_factory::WriteContext<W>,
-) -> GenResult<W> {
-    let mut result = writer;
-    result = string("\"")(result)?;
-    result = string(&namedlist.name)(result)?;
-    result = string(" = {\\\n")(result)?;
-    let mut len = namedlist.values.len();
-    for value in &namedlist.values {
-        result = if let Value::String(s) = value {
-            tuple((
-                string("\\\""),
-                string(escape_string(&escape_string(s))),
-                string("\\\""),
-            ))(result)?
-        } else {
-            compose_value(&value, result)?
-        };
-        if len > 1 {
-            result = string(",\\\n")(result)?;
-            len -= 1;
-        }
-    }
-    result = string(" }\\\n")(result)?;
-    result = string("\"")(result)?;
     Ok(result)
 }
 

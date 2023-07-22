@@ -17,6 +17,7 @@ pub enum Value<'v> {
     String(Cow<'v, str>),
     Values(Vec<Value<'v>>),
     Struct(HashMap<Cow<'v, str>, Value<'v>>),
+    Root(Cow<'v, str>, Box<Value<'v>>),
 }
 
 macro_rules! into_getter {
@@ -55,6 +56,7 @@ impl<'v> Value<'v> {
                     .map(|(k, v)| (Cow::Owned(k.into_owned()), v.into_static()))
                     .collect(),
             ),
+            Value::Root(k, v) => Value::Root(Cow::Owned(k.into_owned()), Box::new(v.into_static())),
         }
     }
 
@@ -117,6 +119,7 @@ impl<'v> Value<'v> {
     mut_getter!(get_mut_string, Cow<'v, str>, String);
     mut_getter!(get_mut_values, Vec<Value<'v>>, Values);
     mut_getter!(get_mut_struct, HashMap<Cow<'v, str>, Value<'v>>, Struct);
+
 }
 
 #[cfg(feature = "serde")]
@@ -146,8 +149,11 @@ impl<'v> Serialize for Value<'v> {
                 ss.end()
             }
             Value::Unit => serializer.serialize_unit(),
-            #[cfg(feature = "namedlist")]
-            Value::NamedList(n) => n.serialize(serializer),
+            Value::Root(k, v) => {
+                let mut ss = serializer.serialize_map(Some(1))?;
+                ss.serialize_entry(&k, v)?;
+                ss.end()
+            }
         }
     }
 }
@@ -270,8 +276,7 @@ impl std::fmt::Display for Value<'_> {
             Value::Values(v) => write!(f, "{:?}", v),
             Value::Struct(s) => write!(f, "{:?}", s),
             Value::Unit => write!(f, "{{}}"),
-            #[cfg(feature = "namedlist")]
-            Value::NamedList(nl) => write!(f, "{:?}", nl),
+            Value::Root(k, v) => write!(f, "{{{}: {}}}", k, v),
         }
     }
 }

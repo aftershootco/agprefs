@@ -1,3 +1,4 @@
+use pretty_assertions::{assert_eq, assert_ne};
 pub const ASSETS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/assets");
 use agprefs::Agpref;
 #[test]
@@ -6,7 +7,9 @@ pub fn one() {
         env!("CARGO_MANIFEST_DIR"),
         "/tests/assets/1.agprefs"
     ));
-    Agpref::parse(input).unwrap();
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }
 
 #[test]
@@ -15,7 +18,9 @@ pub fn two() {
         env!("CARGO_MANIFEST_DIR"),
         "/tests/assets/2.agprefs"
     ));
-    Agpref::parse(input).unwrap();
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }
 
 #[test]
@@ -24,7 +29,9 @@ pub fn nikhil() {
         env!("CARGO_MANIFEST_DIR"),
         "/tests/assets/nikhil.agprefs"
     ));
-    Agpref::parse(input).unwrap();
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }
 
 #[test]
@@ -35,7 +42,7 @@ pub fn windows() {
     ));
     let x = Agpref::parse(input).unwrap();
     let output = Agpref::to_str(&x).unwrap();
-    std::fs::write("x.agprefs", &output).unwrap();
+    // std::fs::write("x.agprefs", &output).unwrap();
     assert_eq!(&input, &output);
 
     let recents = x
@@ -69,6 +76,9 @@ pub fn db() {
     let x = Agpref::parse(input).unwrap();
     let output = Agpref::to_str(&x).unwrap();
     assert_eq!(input, output);
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }
 
 #[test]
@@ -80,6 +90,9 @@ pub fn metadata() {
     let x = Agpref::parse(input).unwrap();
     let output = Agpref::to_str(&x).unwrap();
     assert_eq!(input, output);
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }
 #[test]
 pub fn fail() {
@@ -98,4 +111,7 @@ pub fn serialize_metadata() {
     let out = serde_json::to_string(&agpref).unwrap();
     let agpref2 = serde_json::from_str(&out).unwrap();
     assert_eq!(agpref, agpref2);
+    let nom = Agpref::parse(input).unwrap();
+    let chumsky = Agpref::cparse(input).unwrap();
+    assert_eq!(nom, chumsky);
 }

@@ -53,6 +53,11 @@ fn _agprefs(s: &str) -> Result<(&str, Agpref), nom::Err<nom::error::Error<&str>>
     Ok((s, prefs))
 }
 
+pub fn root(s: &str) -> Result<(&str, Value), nom::Err<nom::error::Error<&str>>> {
+    let (s, (name, value)) = get_key_value(s)?;
+    Ok((s, Value::Root(name.into(), Box::new(value))))
+}
+
 #[test]
 fn esc_test() {
     let s = esc(r#"C:\\Users\\harsh\\Pictures\\Lightroom\\Lightroom Catalog.lrcat"#).unwrap();
@@ -131,15 +136,13 @@ fn close(s: &str) -> IResult<&str, &str> {
 
 pub fn get_value(s: &str) -> IResult<&str, Value> {
     alt((
-        map(get_vec, Value::from),
-        map(get_struct, Value::from),
-        #[cfg(feature = "namedlist")]
-        map(get_namedlist, Value::from),
-        map(get_string, Value::from),
         map(get_num, Value::from),
         map(get_float, Value::from),
         map(get_bool, Value::from),
         map(get_unit, Value::from),
+        map(get_vec, Value::from),
+        map(get_struct, Value::from),
+        map(get_string, Value::from),
     ))(s)
 }
 
@@ -230,32 +233,3 @@ fn get_struct(s: &str) -> IResult<&str, HashMap<Cow<'_, str>, Value<'_>>> {
     ))
 }
 
-#[cfg(feature = "namedlist")]
-fn get_namedlist<'v>(s: &'v str) -> IResult<&'v str, Value<'v>> {
-    let (s, _) = quote(s)?;
-    let (s, text) = esc(s)?;
-    let (s, _) = quote(s)?;
-
-    use std::borrow::Borrow;
-    let (ts, kv) = get_key_value(text.borrow()).map_err(|_| {
-        nom::Err::Error(ParseError::from_error_kind(
-            "Failed to parse as named list",
-            ErrorKind::AlphaNumeric,
-        ))
-    })?;
-    if !ts.is_empty() {
-        return Err(nom::Err::Error(ParseError::from_error_kind(
-            "Failed to parse as named list",
-            ErrorKind::AlphaNumeric,
-        )));
-    }
-
-    if let (name, Value::Values(v)) = kv {
-        Ok((s, (name, v).into()))
-    } else {
-        Err(nom::Err::Error(ParseError::from_error_kind(
-            "Failed to parse as named list",
-            ErrorKind::AlphaNumeric,
-        )))
-    }
-}
