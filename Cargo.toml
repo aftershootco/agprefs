@@ -16,7 +16,7 @@ cookie-factory = { version = "0.3.2", optional = true }
 memchr = { version = "2.5", optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
-indexmap = { version = "1.9.1", features = ["serde"] }
+indexmap = { version = "2", features = ["serde"] }
 nom = "7"
 thiserror = "1"
 escape_string = "0.1.2"
@@ -33,7 +33,7 @@ fancy_errors = []
 
 [dev-dependencies]
 serde_json = "1"
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "parsing"
