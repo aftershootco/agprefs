@@ -6,7 +6,13 @@ fn criterion_benchmark(c: &mut Criterion) {
         env!("CARGO_MANIFEST_DIR"),
         "/tests/assets/db.agprefs"
     ));
-    c.bench_function("parsing basic", |b| {
+    c.bench_function("nom parsing basic", |b| {
+        b.iter(|| {
+            let s = black_box(&BASIC);
+            black_box(Agpref::parse(s).unwrap());
+        })
+    });
+    c.bench_function("chumsky parsing basic", |b| {
         b.iter(|| {
             let s = black_box(&BASIC);
             black_box(Agpref::parse(s).unwrap());

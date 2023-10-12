@@ -6,16 +6,16 @@ fn main() -> Result<()> {
         let s = std::fs::read_to_string(&path)?;
         // let agprefs = Agpref::parse(&s)?;
         let agprefs = Agpref::cparse(&s)?;
-        agprefs
-            .get_struct()
-            .unwrap()
-            .values()
-            .flat_map(|p| p.get_string())
-            .for_each(|p| {
-                println!("{}", p);
-            });
-        // #[cfg(feature = "composer")]
-        // println!("{}", agprefs.to_str()?);
+        // agprefs
+        //     .get_struct()
+        //     .unwrap()
+        //     .values()
+        //     .flat_map(|p| p.get_string())
+        //     .for_each(|p| {
+        //         println!("{}", p);
+        //     });
+        #[cfg(feature = "composer")]
+        println!("{}", agprefs.to_str()?);
     }
     Ok(())
 }
