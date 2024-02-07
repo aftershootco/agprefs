@@ -1,0 +1,7 @@
+target_dir := env_var_or_default('CARGO_TARGET_DIR', 'target')
+
+install:
+    @cargo build --release --target-dir={{target_dir}}
+    @install {{target_dir}}/release/nu_plugin_from_agp ~/.local/bin/nu_plugin_from_agp
+    @nu -c 'register ~/.local/bin/nu_plugin_from_agp'
+
