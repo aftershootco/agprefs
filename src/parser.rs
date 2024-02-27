@@ -1,6 +1,6 @@
 use crate::types::*;
-use std::collections::hash_map::RandomState;
-type HashMap<K, V, S = RandomState> = indexmap::IndexMap<K, V, S>;
+use indexmap::IndexMap;
+
 use nom::{
     branch::alt,
     bytes::complete::*,
@@ -212,7 +212,7 @@ pub fn get_key_value(s: &str) -> IResult<&str, (&str, Value<'_>)> {
     Ok((s, (k, v)))
 }
 
-fn get_struct(s: &str) -> IResult<&str, HashMap<Cow<'_, str>, Value<'_>>> {
+fn get_struct(s: &str) -> IResult<&str, IndexMap<Cow<'_, str>, Value<'_>>> {
     let (s, _) = open(s)?;
     let (s, v) = separated_list0(comma, get_key_value)(s)?;
     let (s, _) = opt(comma)(s)?;
