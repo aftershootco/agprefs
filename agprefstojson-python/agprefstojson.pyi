@@ -9,7 +9,7 @@ def encode(input: str) -> str:
         lightroom s struct
 
     example:
-    >>> encode('{"Exposure": 1.5, "Contrast": 30}')
+    >>> encode('{"s": {"Exposure": 1.5, "Contrast": 30}}')
     '"s = { Exposure = 1.5,\nContrast = 30}'
     """
 
@@ -25,6 +25,6 @@ def decode(input: str) -> str:
         json string
 
     example:
-    >>> decode('"s = { Exposure = 1.5,\nContrast = 30}"')
-    {"Exposure": 1.5, "Contrast": 30}
+    >>> decode('s = { Exposure = 1.5,\nContrast = 30}')
+    {"s": {"Exposure": 1.5, "Contrast": 30}}
     """
