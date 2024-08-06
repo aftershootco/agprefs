@@ -386,7 +386,7 @@ impl<'a> Serialize for Agpref<'a> {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for Agpref<'de> {
+impl<'de: 'a, 'a> Deserialize<'de> for Agpref<'a> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
