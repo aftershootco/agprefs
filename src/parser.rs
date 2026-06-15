@@ -7,9 +7,7 @@ use nom::{
     character::complete::*,
     combinator::*,
     error::{ErrorKind, ParseError},
-    multi::*,
-    sequence::*,
-    IResult,
+    multi::*, IResult, Parser,
 };
 use std::borrow::Cow;
 
@@ -73,7 +71,7 @@ fn esc_test_empty() {
 /// Returns an escaped string from a double escaped string
 fn esc(input: &str) -> IResult<&str, Cow<'_, str>> {
     // Is it an empty string ?
-    let (input, v) = opt(peek(tag("\"")))(input)?;
+    let (input, v) = opt(peek(tag("\""))).parse(input)?;
     if v.is_some() {
         return Ok((input, Cow::Borrowed("")));
     }
@@ -88,7 +86,8 @@ fn esc(input: &str) -> IResult<&str, Cow<'_, str>> {
             value("\n", tag("\r\n")),
             value("\r", tag("\r")),
         )),
-    )(input)
+    )
+    .parse(input)
     .map(|(s, r)| (s, Cow::Owned(r)))
 }
 
@@ -104,22 +103,22 @@ pub fn take_eov(s: &str) -> IResult<&str, &str> {
 }
 
 fn quote(s: &str) -> IResult<&str, &str> {
-    recognize(tuple((multispace0, tag("\""), multispace0)))(s)
+    recognize((multispace0, tag("\""), multispace0)).parse(s)
 }
 
 fn equals(s: &str) -> IResult<&str, &str> {
-    recognize(tuple((multispace0, tag("="), multispace0)))(s)
+    recognize((multispace0, tag("="), multispace0)).parse(s)
 }
 fn comma(s: &str) -> IResult<&str, &str> {
-    recognize(tuple((multispace0, tag(","), multispace0)))(s)
+    recognize((multispace0, tag(","), multispace0)).parse(s)
 }
 
 fn open(s: &str) -> IResult<&str, &str> {
-    recognize(tuple((multispace0, tag("{"), multispace0)))(s)
+    recognize((multispace0, tag("{"), multispace0)).parse(s)
 }
 
 fn close(s: &str) -> IResult<&str, &str> {
-    recognize(tuple((multispace0, tag("}"), multispace0)))(s)
+    recognize((multispace0, tag("}"), multispace0)).parse(s)
 }
 
 pub fn get_value(s: &str) -> IResult<&str, Value> {
@@ -133,7 +132,8 @@ pub fn get_value(s: &str) -> IResult<&str, Value> {
         map(get_float, Value::from),
         map(get_bool, Value::from),
         map(get_unit, Value::from),
-    ))(s)
+    ))
+    .parse(s)
 }
 
 fn get_string(s: &str) -> IResult<&str, std::borrow::Cow<'_, str>> {
@@ -199,8 +199,8 @@ fn get_unit(s: &str) -> IResult<&str, ()> {
 
 fn get_vec(s: &str) -> IResult<&str, Vec<Value<'_>>> {
     let (s, _) = open(s)?;
-    let (s, v) = separated_list0(comma, get_value)(s)?;
-    let (s, _) = opt(comma)(s)?;
+    let (s, v) = separated_list0(comma, get_value).parse(s)?;
+    let (s, _) = opt(comma).parse(s)?;
     let (s, _) = close(s)?;
     Ok((s, v))
 }
@@ -214,8 +214,8 @@ pub fn get_key_value(s: &str) -> IResult<&str, (&str, Value<'_>)> {
 
 fn get_struct(s: &str) -> IResult<&str, IndexMap<Cow<'_, str>, Value<'_>>> {
     let (s, _) = open(s)?;
-    let (s, v) = separated_list0(comma, get_key_value)(s)?;
-    let (s, _) = opt(comma)(s)?;
+    let (s, v) = separated_list0(comma, get_key_value).parse(s)?;
+    let (s, _) = opt(comma).parse(s)?;
     let (s, _) = close(s)?;
     Ok((
         s,
